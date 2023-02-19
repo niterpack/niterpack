@@ -25,7 +25,7 @@ impl fmt::Display for NotADirectory {
 impl Error for NotADirectory {}
 
 #[derive(Debug)]
-pub struct UnsupportedFormat(String);
+pub struct UnsupportedFormat(pub String);
 
 impl fmt::Display for UnsupportedFormat {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {

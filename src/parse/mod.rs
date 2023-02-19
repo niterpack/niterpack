@@ -37,7 +37,7 @@ pub fn parse(path: PathBuf) -> Result<Modpack> {
     })
 }
 
-fn parse_main_file(mut path: PathBuf) -> Result<MainFile> {
+fn parse_main_file(path: PathBuf) -> Result<MainFile> {
     if !path.exists() || !path.is_file() {
         return Err(MainFileNotFound.into());
     }
