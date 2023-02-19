@@ -1,13 +1,13 @@
 use std::fs;
 use std::path::PathBuf;
-use crate::modpack::Modpack;
 use crate::{log, Result};
+use crate::project::Project;
 
-pub fn build(modpack: Modpack, path: PathBuf) -> Result<()> {
-    build_installation(modpack, path.join("installation"))
+pub fn build(project: Project, path: PathBuf) -> Result<()> {
+    build_installation(project, path.join("installation"))
 }
 
-pub fn build_installation(modpack: Modpack, path: PathBuf) -> Result<()> {
+pub fn build_installation(project: Project, path: PathBuf) -> Result<()> {
     if path.exists() {
         if path.is_file() {
             fs::remove_file(path.clone())?
@@ -24,7 +24,7 @@ pub fn build_installation(modpack: Modpack, path: PathBuf) -> Result<()> {
     let client = reqwest::blocking::Client::builder()
         .build()?;
 
-    for mod_data in modpack.mods {
+    for mod_data in project.mods {
         log!("Downloading {}", mod_data.file);
 
         let response = client.get(mod_data.download).send()?;

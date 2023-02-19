@@ -1,6 +1,5 @@
-
 #[derive(Debug)]
-pub struct Modpack {
+pub struct Project {
     pub name: String,
     pub version: String,
     pub mods: Vec<Mod>

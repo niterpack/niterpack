@@ -3,8 +3,8 @@ pub mod error;
 use std::fs;
 use std::path::{PathBuf};
 use serde::{Deserialize};
-use crate::modpack::{Mod, Modpack};
 use crate::parse::error::{MainFileNotFound, NotADirectory, UnsupportedFormat};
+use crate::project::{Project, Mod};
 use crate::Result;
 
 #[derive(Deserialize)]
@@ -19,7 +19,7 @@ struct ModFile {
     download: String
 }
 
-pub fn parse(path: PathBuf) -> Result<Modpack> {
+pub fn parse(path: PathBuf) -> Result<Project> {
     if !path.exists() || !path.is_dir() {
         return Err(NotADirectory.into());
     }
@@ -30,7 +30,7 @@ pub fn parse(path: PathBuf) -> Result<Modpack> {
         return Err(UnsupportedFormat(main_file.format).into())
     }
 
-    return Ok(Modpack {
+    return Ok(Project {
         name: main_file.name,
         version: main_file.version,
         mods: parse_mods(path.join("mods"))?

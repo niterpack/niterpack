@@ -1,7 +1,7 @@
 mod parse;
-mod modpack;
 mod build;
 mod log;
+mod project;
 
 use std::env;
 use clap::{command, Command};
@@ -24,16 +24,16 @@ fn cli() -> Command {
 fn main() {
     let current_dir = env::current_dir().unwrap();
     let matches = cli().get_matches();
-    let modpack = parse(current_dir.clone()).unwrap_or_else(|err| {
+    let project = parse(current_dir.clone()).unwrap_or_else(|err| {
         elog(err.to_string());
         std::process::exit(1);
     });
 
     match matches.subcommand() {
         Some(("build", _)) => {
-            log!("Building modpack {}, version {}", modpack.name, modpack.version);
+            log!("Building modpack {}, version {}", project.name, project.version);
 
-            build(modpack, current_dir.join("build")).unwrap_or_else(|err| {
+            build(project, current_dir.join("build")).unwrap_or_else(|err| {
                 elog(err.to_string());
                 std::process::exit(1);
             });
