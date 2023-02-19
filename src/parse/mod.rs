@@ -22,6 +22,10 @@ pub fn parse(path: PathBuf) -> Result<Modpack, String> {
 
     let main_file = parse_main_file(path.clone())?;
 
+    if main_file.format != "0beta" {
+        return Err(format!("format '{}' is not supported", main_file.format))
+    }
+
     return Ok(Modpack {
         name: main_file.name,
         version: main_file.version,
