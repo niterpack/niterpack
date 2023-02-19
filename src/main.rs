@@ -7,6 +7,9 @@ use std::path::PathBuf;
 use clap::{arg, command, Command};
 use crate::parse::parse;
 
+type Error = Box<dyn std::error::Error>;
+type Result<T> = std::result::Result<T, Error>;
+
 fn cli() -> Command {
     command!()
         .arg(arg!(<PATH> "Path to the folder of parsing").value_parser(clap::value_parser!(PathBuf)))
