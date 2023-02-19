@@ -1,10 +1,12 @@
 mod parse;
 mod modpack;
 mod build;
+mod log;
 
 use std::env;
 use clap::{command, Command};
 use crate::build::build;
+use crate::log::elog;
 use crate::parse::parse;
 
 type Error = Box<dyn std::error::Error>;
@@ -23,16 +25,16 @@ fn main() {
     let current_dir = env::current_dir().unwrap();
     let matches = cli().get_matches();
     let modpack = parse(current_dir.clone()).unwrap_or_else(|err| {
-        eprintln!("error: {}", err);
+        elog(err.to_string());
         std::process::exit(1);
     });
 
     match matches.subcommand() {
         Some(("build", _)) => {
-            println!("Building modpack {}, version {}", modpack.name, modpack.version);
+            log!("Building modpack {}, version {}", modpack.name, modpack.version);
 
             build(modpack, current_dir.join("build")).unwrap_or_else(|err| {
-                eprintln!("error: {}", err);
+                elog(err.to_string());
                 std::process::exit(1);
             });
         }

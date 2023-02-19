@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 use crate::modpack::Modpack;
-use crate::Result;
+use crate::{log, Result};
 
 pub fn build(modpack: Modpack, path: PathBuf) -> Result<()> {
     build_installation(modpack, path.join("installation"))
@@ -25,7 +25,7 @@ pub fn build_installation(modpack: Modpack, path: PathBuf) -> Result<()> {
         .build()?;
 
     for mod_data in modpack.mods {
-        println!("Downloading {}", mod_data.file);
+        log!("Downloading {}", mod_data.file);
 
         let response = client.get(mod_data.download).send()?;
         let body = response.text()?;
