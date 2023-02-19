@@ -1,0 +1,13 @@
+[package]
+name = "niter"
+version = "0.0.0"
+description = "A CLI tool for managing and packing Minecraft modpacks"
+repository = "https://github.com/panda885/niter"
+license = "MIT OR Apache-2.0"
+authors = ["Panda885"]
+categories = ["command-line-utilities"]
+keywords = ["Minecraft", "modpack"]
+readme = "README.md"
+edition = "2021"
+
+[dependencies]
