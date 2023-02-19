@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{PathBuf};
 use serde::{Deserialize};
 use crate::modpack::{Mod, Modpack};
-use crate::parse::error::{InsideProjectOnly, NotADirectory, UnsupportedFormat};
+use crate::parse::error::{MainFileNotFound, NotADirectory, UnsupportedFormat};
 use crate::Result;
 
 #[derive(Deserialize)]
@@ -39,7 +39,7 @@ pub fn parse(path: PathBuf) -> Result<Modpack> {
 
 fn parse_main_file(mut path: PathBuf) -> Result<MainFile> {
     if !path.exists() || !path.is_file() {
-        return Err(InsideProjectOnly.into());
+        return Err(MainFileNotFound.into());
     }
 
     serde_json::from_str(fs::read_to_string(path)?.as_str())

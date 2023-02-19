@@ -3,15 +3,15 @@ use std::fmt;
 use std::fmt::Formatter;
 
 #[derive(Debug)]
-pub struct InsideProjectOnly;
+pub struct MainFileNotFound;
 
-impl fmt::Display for InsideProjectOnly {
+impl fmt::Display for MainFileNotFound {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "this can only be run inside a project")
+        write!(f, "could not find 'niter.json'")
     }
 }
 
-impl Error for InsideProjectOnly {}
+impl Error for MainFileNotFound {}
 
 #[derive(Debug)]
 pub struct NotADirectory;
