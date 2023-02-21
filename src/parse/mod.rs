@@ -3,9 +3,12 @@ pub mod error;
 use std::fs;
 use std::path::{PathBuf};
 use serde::{Serialize, Deserialize};
-use crate::parse::error::{MainFileAlreadyExists, MainFileNotFound, NotADirectory, UnsupportedFormat};
+use serde_json::Value;
+use crate::parse::error::{FormatValueExpected, MainFileAlreadyExists, MainFileNotFound, NotADirectory, UnsupportedFormat};
 use crate::project::{Project, Mod};
 use crate::Result;
+
+const SUPPORTED_FORMAT: &str = "0beta";
 
 #[derive(Serialize, Deserialize)]
 struct MainFile {
@@ -25,7 +28,7 @@ pub fn create_main_file(project: &Project, path: PathBuf) -> Result<()> {
     }
 
     let main_file = MainFile {
-        format: "0beta".into(),
+        format: SUPPORTED_FORMAT.into(),
         name: project.name.clone(),
         version: project.version.clone()
     };
@@ -41,11 +44,6 @@ pub fn parse(path: PathBuf) -> Result<Project> {
 
     let main_file = parse_main_file(path.join("niter.json"))?;
 
-    // TODO: Move this to parse_main_file function
-    if main_file.format != "0beta" {
-        return Err(UnsupportedFormat(main_file.format).into())
-    }
-
     return Ok(Project {
         name: main_file.name,
         version: main_file.version,
@@ -58,7 +56,14 @@ fn parse_main_file(path: PathBuf) -> Result<MainFile> {
         return Err(MainFileNotFound.into());
     }
 
-    serde_json::from_str(fs::read_to_string(path)?.as_str())
+    let main_file: Value = serde_json::from_str(fs::read_to_string(path)?.as_str())?;
+    let format = main_file["format"].as_str().ok_or(FormatValueExpected)?;
+
+    if format != SUPPORTED_FORMAT {
+        return Err(UnsupportedFormat(format.into()).into())
+    }
+
+    serde_json::from_value(main_file)
         .map_err(|err| err.into())
 }
 

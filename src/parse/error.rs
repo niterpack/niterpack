@@ -3,6 +3,17 @@ use std::fmt;
 use std::fmt::Formatter;
 
 #[derive(Debug)]
+pub struct FormatValueExpected;
+
+impl fmt::Display for FormatValueExpected {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "value for 'format' in 'niter.json' not found")
+    }
+}
+
+impl Error for FormatValueExpected {}
+
+#[derive(Debug)]
 pub struct MainFileAlreadyExists;
 
 impl fmt::Display for MainFileAlreadyExists {
