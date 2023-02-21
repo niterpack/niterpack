@@ -3,6 +3,17 @@ use std::fmt;
 use std::fmt::Formatter;
 
 #[derive(Debug)]
+pub struct MainFileAlreadyExists;
+
+impl fmt::Display for MainFileAlreadyExists {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "file 'niter.json' already exists")
+    }
+}
+
+impl Error for MainFileAlreadyExists {}
+
+#[derive(Debug)]
 pub struct MainFileNotFound;
 
 impl fmt::Display for MainFileNotFound {

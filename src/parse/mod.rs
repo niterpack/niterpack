@@ -2,21 +2,36 @@ pub mod error;
 
 use std::fs;
 use std::path::{PathBuf};
-use serde::{Deserialize};
-use crate::parse::error::{MainFileNotFound, NotADirectory, UnsupportedFormat};
+use serde::{Serialize, Deserialize};
+use crate::parse::error::{MainFileAlreadyExists, MainFileNotFound, NotADirectory, UnsupportedFormat};
 use crate::project::{Project, Mod};
 use crate::Result;
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct MainFile {
     format: String,
     name: String,
     version: String
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct ModFile {
     download: String
+}
+
+pub fn create_main_file(project: &Project, path: PathBuf) -> Result<()> {
+    if path.exists() {
+        return Err(MainFileAlreadyExists.into());
+    }
+
+    let main_file = MainFile {
+        format: "0beta".into(),
+        name: project.name.clone(),
+        version: project.version.clone()
+    };
+
+    serde_json::to_writer_pretty(fs::File::create(path)?, &main_file)
+        .map_err(|err| err.into())
 }
 
 pub fn parse(path: PathBuf) -> Result<Project> {
@@ -26,6 +41,7 @@ pub fn parse(path: PathBuf) -> Result<Project> {
 
     let main_file = parse_main_file(path.join("niter.json"))?;
 
+    // TODO: Move this to parse_main_file function
     if main_file.format != "0beta" {
         return Err(UnsupportedFormat(main_file.format).into())
     }
