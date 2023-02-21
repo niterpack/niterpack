@@ -1,5 +1,19 @@
+use std::fmt;
 use std::io::Write;
 use termcolor::{BufferWriter, Color, ColorChoice, ColorSpec, WriteColor};
+
+pub trait UnwrapOrLogExt<T> {
+    fn unwrap_or_log(self) -> T;
+}
+
+impl<T, E: fmt::Display> UnwrapOrLogExt<T> for Result<T, E> {
+    fn unwrap_or_log(self) -> T {
+        self.unwrap_or_else(|err| {
+            elog(err.to_string());
+            std::process::exit(1);
+        })
+    }
+}
 
 pub fn elog(message: String) {
     let buffer_writer = BufferWriter::stderr(ColorChoice::Auto);

@@ -6,7 +6,7 @@ mod project;
 use std::env;
 use clap::{command, Command};
 use crate::build::build;
-use crate::log::elog;
+use crate::log::UnwrapOrLogExt;
 use crate::project::Project;
 
 type Error = Box<dyn std::error::Error>;
@@ -31,17 +31,11 @@ fn main() {
 
     match matches.subcommand() {
         Some(("build", _)) => {
-            let project = Project::parse(current_dir.clone()).unwrap_or_else(|err| {
-                elog(err.to_string());
-                std::process::exit(1);
-            });
+            let project = Project::parse(current_dir.clone()).unwrap_or_log();
 
             log!("Building modpack {}, version {}", project.name, project.version);
 
-            build(project, current_dir.join("build")).unwrap_or_else(|err| {
-                elog(err.to_string());
-                std::process::exit(1);
-            });
+            build(project, current_dir.join("build")).unwrap_or_log();
         },
         Some(("init", _)) => {
             let project = Project::new(
@@ -49,11 +43,7 @@ fn main() {
                 "0.1.0".into()
             );
 
-            project.create_files(current_dir)
-                .unwrap_or_else(|err| {
-                    elog(err.to_string());
-                    std::process::exit(1);
-                });
+            project.create_files(current_dir).unwrap_or_log();
 
             log!("Created modpack '{}'", project.name)
         }
