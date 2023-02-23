@@ -34,3 +34,15 @@ pub struct Mod {
     pub file: String,
     pub download: String
 }
+
+impl Mod {
+    pub fn new(
+        file: String,
+        download: String
+    ) -> Self {
+        Mod {
+            file,
+            download
+        }
+    }
+}

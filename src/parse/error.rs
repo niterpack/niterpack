@@ -3,6 +3,17 @@ use std::fmt;
 use std::fmt::Formatter;
 
 #[derive(Debug)]
+pub struct ModAlreadyAdded(pub String);
+
+impl fmt::Display for ModAlreadyAdded {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "mod '{}' is already added", self.0)
+    }
+}
+
+impl Error for ModAlreadyAdded {}
+
+#[derive(Debug)]
 pub struct FormatValueExpected;
 
 impl fmt::Display for FormatValueExpected {

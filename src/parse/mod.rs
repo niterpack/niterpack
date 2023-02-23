@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{PathBuf};
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
-use crate::parse::error::{FormatValueExpected, MainFileAlreadyExists, MainFileNotFound, NotADirectory, UnsupportedFormat};
+use crate::parse::error::{FormatValueExpected, MainFileAlreadyExists, MainFileNotFound, ModAlreadyAdded, NotADirectory, UnsupportedFormat};
 use crate::project::{Project, Mod};
 use crate::Result;
 
@@ -20,6 +20,19 @@ struct MainFile {
 #[derive(Serialize, Deserialize)]
 struct ModFile {
     download: String
+}
+
+pub fn create_mod_file(mod_data: &Mod, path: PathBuf) -> Result<()> {
+    if path.exists() {
+        return Err(ModAlreadyAdded(mod_data.file.clone()).into());
+    }
+
+    let mod_file = ModFile {
+        download: mod_data.download.clone()
+    };
+
+    serde_json::to_writer_pretty(fs::File::create(path)?, &mod_file)
+        .map_err(|err| err.into())
 }
 
 pub fn create_main_file(project: &Project, path: PathBuf) -> Result<()> {

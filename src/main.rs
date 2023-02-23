@@ -4,10 +4,11 @@ mod log;
 mod project;
 
 use std::env;
-use clap::{command, Command};
+use clap::{arg, command, Command};
+use reqwest::Url;
 use crate::build::build;
 use crate::log::UnwrapOrLogExt;
-use crate::project::Project;
+use crate::project::{Mod, Project};
 
 type Error = Box<dyn std::error::Error>;
 type Result<T> = std::result::Result<T, Error>;
@@ -18,6 +19,11 @@ fn cli() -> Command {
         .subcommand(
             Command::new("build")
                 .about("Builds the project")
+        )
+        .subcommand(
+            Command::new("add")
+                .about("Adds a new mod")
+                .arg(arg!(<LINK>  "Download link to the new mod"))
         )
         .subcommand(
             Command::new("init")
@@ -37,6 +43,29 @@ fn main() {
 
             build(project, current_dir.join("build")).unwrap_or_log();
         },
+        Some(("add", sub_matches)) => {
+            let download_url = &Url::parse(sub_matches.get_one::<String>("LINK").unwrap()).unwrap_or_log();
+            let file_name = download_url
+                .path_segments()
+                .and_then(|segments| segments.last())
+                .and_then(|name| if name.is_empty() { None } else { Some(name) })
+                .unwrap();
+
+            let mod_data = Mod::new(
+                file_name.into(),
+                download_url.clone().into()
+            );
+
+            parse::create_mod_file(
+                &mod_data,
+                current_dir
+                    .join("mods")
+                    .join(file_name)
+                    .with_extension("json")
+            ).unwrap_or_log();
+
+            log!("Added mod '{}'", file_name)
+        },
         Some(("init", _)) => {
             let project = Project::new(
                 current_dir.file_name().unwrap().to_string_lossy().to_string(),
@@ -46,7 +75,7 @@ fn main() {
             project.create_files(current_dir).unwrap_or_log();
 
             log!("Created modpack '{}'", project.name)
-        }
+        },
         _ => unreachable!()
     }
 }
