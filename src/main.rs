@@ -1,4 +1,4 @@
-mod parse;
+mod format;
 mod build;
 mod log;
 mod project;
@@ -35,7 +35,7 @@ fn main() {
 
     match matches.subcommand() {
         Some(("build", _)) => {
-            let project = Project::parse(current_dir.clone()).unwrap_or_log();
+            let project = Project::format(current_dir.clone()).unwrap_or_log();
 
             log!("Building modpack {}, version {}", project.name, project.version);
 
@@ -54,7 +54,7 @@ fn main() {
                 download_url.clone().into()
             );
 
-            parse::create_mod_file(
+            format::create_mod_file(
                 &mod_data,
                 current_dir
                     .join("mods")

@@ -20,12 +20,12 @@ impl Project {
         }
     }
 
-    pub fn parse(path: PathBuf) -> Result<Self> {
-        crate::parse::parse(path)
+    pub fn format(path: PathBuf) -> Result<Self> {
+        crate::format::format(path)
     }
 
     pub fn create_files(&self, path: PathBuf) -> Result<()> {
-        crate::parse::create_main_file(self, path.join("niter.json"))
+        crate::format::create_main_file(self, path.join("niter.json"))
     }
 }
 

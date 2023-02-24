@@ -47,21 +47,21 @@ pub fn create_main_file(project: &Project, path: PathBuf) -> Result<()> {
         .map_err(|err| err.into())
 }
 
-pub fn parse(path: PathBuf) -> Result<Project> {
+pub fn format(path: PathBuf) -> Result<Project> {
     if !path.exists() || !path.is_dir() {
         return Err(NotADirectory.into());
     }
 
-    let main_file = parse_main_file(path.join("niter.json"))?;
+    let main_file = format_main_file(path.join("niter.json"))?;
 
     return Ok(Project {
         name: main_file.name,
         version: main_file.version,
-        mods: parse_mods(path.join("mods"))?
+        mods: format_mods(path.join("mods"))?
     })
 }
 
-fn parse_main_file(path: PathBuf) -> Result<MainFile> {
+fn format_main_file(path: PathBuf) -> Result<MainFile> {
     if !path.exists() || !path.is_file() {
         return Err(MainFileNotFound.into());
     }
@@ -77,7 +77,7 @@ fn parse_main_file(path: PathBuf) -> Result<MainFile> {
         .map_err(|err| err.into())
 }
 
-fn parse_mods(path: PathBuf) -> Result<Vec<Mod>> {
+fn format_mods(path: PathBuf) -> Result<Vec<Mod>> {
     if !path.exists() || !path.is_dir() {
         return Ok(vec![]);
     }
@@ -92,7 +92,7 @@ fn parse_mods(path: PathBuf) -> Result<Vec<Mod>> {
             continue;
         }
 
-        let mod_file = parse_mod_file(path.clone())?;
+        let mod_file = format_mod_file(path.clone())?;
         result.push(Mod {
             download: mod_file.download,
             file: path.with_extension("jar").file_name().unwrap().to_os_string().into_string().unwrap()
@@ -102,7 +102,7 @@ fn parse_mods(path: PathBuf) -> Result<Vec<Mod>> {
     Ok(result)
 }
 
-fn parse_mod_file(path: PathBuf) -> Result<ModFile> {
+fn format_mod_file(path: PathBuf) -> Result<ModFile> {
     serde_json::from_str(fs::read_to_string(path)?.as_str())
         .map_err(|err| err.into())
 }
