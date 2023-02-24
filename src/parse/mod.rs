@@ -1,12 +1,9 @@
-pub mod error;
-
 use std::fs;
 use std::path::{PathBuf};
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
-use crate::parse::error::{FormatValueExpected, MainFileAlreadyExists, MainFileNotFound, ModAlreadyAdded, NotADirectory, UnsupportedFormat};
+use crate::error::{Result, FormatValueExpected, AlreadyInitiated, MainFileNotFound, ModAlreadyExists, NotADirectory, UnsupportedFormat};
 use crate::project::{Project, Mod};
-use crate::Result;
 
 const SUPPORTED_FORMAT: &str = "0beta";
 
@@ -24,7 +21,7 @@ struct ModFile {
 
 pub fn create_mod_file(mod_data: &Mod, path: PathBuf) -> Result<()> {
     if path.exists() {
-        return Err(ModAlreadyAdded(mod_data.file.clone()).into());
+        return Err(ModAlreadyExists(mod_data.file.clone()).into());
     }
 
     let mod_file = ModFile {
@@ -37,7 +34,7 @@ pub fn create_mod_file(mod_data: &Mod, path: PathBuf) -> Result<()> {
 
 pub fn create_main_file(project: &Project, path: PathBuf) -> Result<()> {
     if path.exists() {
-        return Err(MainFileAlreadyExists.into());
+        return Err(AlreadyInitiated.into());
     }
 
     let main_file = MainFile {

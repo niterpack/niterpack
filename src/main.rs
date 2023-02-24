@@ -2,6 +2,7 @@ mod parse;
 mod build;
 mod log;
 mod project;
+mod error;
 
 use std::env;
 use clap::{arg, command, Command};
@@ -9,9 +10,6 @@ use reqwest::Url;
 use crate::build::build;
 use crate::log::UnwrapOrLogExt;
 use crate::project::{Mod, Project};
-
-type Error = Box<dyn std::error::Error>;
-type Result<T> = std::result::Result<T, Error>;
 
 fn cli() -> Command {
     command!()

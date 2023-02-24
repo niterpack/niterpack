@@ -1,17 +1,20 @@
-use std::error::Error;
 use std::fmt;
 use std::fmt::Formatter;
 
-#[derive(Debug)]
-pub struct ModAlreadyAdded(pub String);
+pub type Error = Box<dyn std::error::Error>;
 
-impl fmt::Display for ModAlreadyAdded {
+pub type Result<T> = std::result::Result<T, Error>;
+
+#[derive(Debug)]
+pub struct ModAlreadyExists(pub String);
+
+impl fmt::Display for ModAlreadyExists {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "mod '{}' is already added", self.0)
+        write!(f, "mod '{}' already exists", self.0)
     }
 }
 
-impl Error for ModAlreadyAdded {}
+impl std::error::Error for ModAlreadyExists {}
 
 #[derive(Debug)]
 pub struct FormatValueExpected;
@@ -22,18 +25,18 @@ impl fmt::Display for FormatValueExpected {
     }
 }
 
-impl Error for FormatValueExpected {}
+impl std::error::Error for FormatValueExpected {}
 
 #[derive(Debug)]
-pub struct MainFileAlreadyExists;
+pub struct AlreadyInitiated;
 
-impl fmt::Display for MainFileAlreadyExists {
+impl fmt::Display for AlreadyInitiated {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "file 'niter.json' already exists")
+        write!(f, "a modpack is already initiated in this directory")
     }
 }
 
-impl Error for MainFileAlreadyExists {}
+impl std::error::Error for AlreadyInitiated {}
 
 #[derive(Debug)]
 pub struct MainFileNotFound;
@@ -44,7 +47,7 @@ impl fmt::Display for MainFileNotFound {
     }
 }
 
-impl Error for MainFileNotFound {}
+impl std::error::Error for MainFileNotFound {}
 
 #[derive(Debug)]
 pub struct NotADirectory;
@@ -55,7 +58,7 @@ impl fmt::Display for NotADirectory {
     }
 }
 
-impl Error for NotADirectory {}
+impl std::error::Error for NotADirectory {}
 
 #[derive(Debug)]
 pub struct UnsupportedFormat(pub String);
@@ -66,4 +69,4 @@ impl fmt::Display for UnsupportedFormat {
     }
 }
 
-impl Error for UnsupportedFormat {}
+impl std::error::Error for UnsupportedFormat {}

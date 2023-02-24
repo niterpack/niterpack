@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use crate::Result;
+use crate::error::Result;
 
 #[derive(Debug, Clone)]
 pub struct Project {

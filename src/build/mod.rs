@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
-use crate::{log, Result};
+use crate::log;
+use crate::error::Result;
 use crate::project::Project;
 
 pub fn build(project: Project, path: PathBuf) -> Result<()> {
