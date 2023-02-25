@@ -8,6 +8,17 @@ pub type Error = Box<dyn std::error::Error>;
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug)]
+pub struct UnknownFileName;
+
+impl fmt::Display for UnknownFileName {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "unknown file name")
+    }
+}
+
+impl std::error::Error for UnknownFileName {}
+
+#[derive(Debug)]
 pub struct ModAlreadyExists(pub String);
 
 impl fmt::Display for ModAlreadyExists {

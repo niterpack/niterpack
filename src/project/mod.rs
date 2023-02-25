@@ -1,5 +1,8 @@
+pub mod source;
+
 use std::path::PathBuf;
 use crate::error::Result;
+use crate::project::source::Source;
 
 #[derive(Debug, Clone)]
 pub struct Project {
@@ -31,18 +34,18 @@ impl Project {
 
 #[derive(Debug, Clone)]
 pub struct Mod {
-    pub file: String,
-    pub download: String
+    pub file: Option<String>,
+    pub source: Source
 }
 
 impl Mod {
     pub fn new(
-        file: String,
-        download: String
+        file: Option<String>,
+        source: Source
     ) -> Self {
         Mod {
             file,
-            download
+            source
         }
     }
 }
