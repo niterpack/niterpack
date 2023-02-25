@@ -1,108 +1,162 @@
 use std::fs;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 use serde::{Serialize, Deserialize};
-use serde_json::Value;
-use crate::error::{Result, FormatValueExpected, AlreadyInitiated, MainFileNotFound, ModAlreadyExists, NotADirectory, UnsupportedFormat};
+use serde_json::{json, Value};
+use crate::error::{Result, ValueExpected, AlreadyInitiated, MainFileNotFound, ModAlreadyExists, UnsupportedFormat};
 use crate::project::{Project, Mod};
 
 const SUPPORTED_FORMAT: &str = "0beta";
 
 #[derive(Serialize, Deserialize)]
-struct MainFile {
+pub struct MainFile {
     format: String,
     name: String,
     version: String
 }
 
-#[derive(Serialize, Deserialize)]
-struct ModFile {
-    download: String
+#[derive(Debug, Default)]
+pub struct ProjectFormatting {
+    path: PathBuf
 }
 
-pub fn create_mod_file(mod_data: &Mod, path: PathBuf) -> Result<()> {
-    if path.exists() {
-        return Err(ModAlreadyExists(mod_data.file.clone()).into());
+impl ProjectFormatting {
+    pub fn new(path: PathBuf) -> ProjectFormatting {
+        ProjectFormatting {
+            path
+        }
     }
 
-    let mod_file = ModFile {
-        download: mod_data.download.clone()
-    };
+    pub fn main_file_path(&self) -> PathBuf {
+        self.path.join("niter.json")
+    }
 
-    serde_json::to_writer_pretty(fs::File::create(path)?, &mod_file)
-        .map_err(|err| err.into())
+    pub fn mods_path(&self) -> PathBuf {
+        self.path.join("mods")
+    }
+
+    pub fn mod_path(&self, name: &str) -> PathBuf {
+        self.mods_path().join(name).with_extension("json")
+    }
+
+    fn create_mods_dir(&self) -> Result<()> {
+        let path = self.mods_path();
+        if !path.exists() {
+            fs::create_dir(self.mods_path())?;
+        }
+        Ok(())
+    }
+
+    pub fn format_mod(&self, name: &str) -> Result<Mod> {
+        let path = self.mod_path(name);
+
+        let mod_data = serde_json::from_str::<Value>(fs::read_to_string(&path)?.as_str())?;
+
+        Ok(Mod::new(
+            path.with_extension("jar")
+                .file_name()
+                .unwrap()
+                .to_os_string()
+                .into_string()
+                .unwrap(),
+            mod_data["download"]
+                .as_str()
+                .ok_or(ValueExpected::from_path("download".into(), &path))?
+                .into()
+        ))
+    }
+
+    pub fn format_main_file(&self) -> Result<MainFile> {
+        let path = self.main_file_path();
+
+        if !path.exists() || !path.is_file() {
+            return Err(MainFileNotFound.into());
+        }
+
+        let main_file: Value = serde_json::from_str(fs::read_to_string(&path)?.as_str())?;
+
+        let format = main_file["format"]
+            .as_str()
+            .ok_or(ValueExpected::from_path("format".into(), &path))?;
+
+        if format != SUPPORTED_FORMAT {
+            return Err(UnsupportedFormat(format.into()).into())
+        }
+
+        Ok(serde_json::from_value(main_file)?)
+    }
+
+    pub fn create_mod(&self, name: &str, mod_data: &Mod) -> Result<()> {
+        self.create_mods_dir()?;
+
+        let path = self.mod_path(name);
+
+        if path.exists() {
+            return Err(ModAlreadyExists(mod_data.file.clone()).into());
+        }
+
+        serde_json::to_writer_pretty(
+            fs::File::create(path)?,
+            &json!({
+                "download": &mod_data.download
+            })
+        )?;
+
+        Ok(())
+    }
+
+    fn create_main_file(&self, project: &Project) -> Result<()> {
+        let path = self.main_file_path();
+
+        if path.exists() {
+            return Err(AlreadyInitiated.into());
+        }
+
+        let main_file = MainFile {
+            format: SUPPORTED_FORMAT.into(),
+            name: project.name.clone(),
+            version: project.version.clone()
+        };
+
+        serde_json::to_writer_pretty(fs::File::create(path)?, &main_file)
+            .map_err(|err| err.into())
+    }
 }
 
-pub fn create_main_file(project: &Project, path: PathBuf) -> Result<()> {
-    if path.exists() {
-        return Err(AlreadyInitiated.into());
+pub fn format_project(path: PathBuf) -> Result<Project> {
+    let formatting = ProjectFormatting::new(path);
+
+    let main_file = formatting.format_main_file()?;
+    let mods_path = formatting.mods_path();
+    let mut mods: Vec<Mod> = vec![];
+
+    if mods_path.exists() {
+        for entry in fs::read_dir(formatting.mods_path())? {
+            let entry = entry?;
+            let path = entry.path();
+
+            if path.is_dir() || path.extension() != Some("json".as_ref()) {
+                continue;
+            }
+
+            mods.push(formatting.format_mod(path.file_name().unwrap().to_str().unwrap())?);
+        }
     }
 
-    let main_file = MainFile {
-        format: SUPPORTED_FORMAT.into(),
-        name: project.name.clone(),
-        version: project.version.clone()
-    };
-
-    serde_json::to_writer_pretty(fs::File::create(path)?, &main_file)
-        .map_err(|err| err.into())
-}
-
-pub fn format(path: PathBuf) -> Result<Project> {
-    if !path.exists() || !path.is_dir() {
-        return Err(NotADirectory.into());
-    }
-
-    let main_file = format_main_file(path.join("niter.json"))?;
-
-    return Ok(Project {
+    Ok(Project {
         name: main_file.name,
         version: main_file.version,
-        mods: format_mods(path.join("mods"))?
+        mods
     })
 }
 
-fn format_main_file(path: PathBuf) -> Result<MainFile> {
-    if !path.exists() || !path.is_file() {
-        return Err(MainFileNotFound.into());
+pub fn create_project(project: &Project, path: PathBuf) -> Result<()> {
+    let formatting = ProjectFormatting::new(path);
+
+    formatting.create_main_file(project)?;
+
+    for mod_data in &project.mods {
+        formatting.create_mod(mod_data.file.as_str(), mod_data)?;
     }
 
-    let main_file: Value = serde_json::from_str(fs::read_to_string(path)?.as_str())?;
-    let format = main_file["format"].as_str().ok_or(FormatValueExpected)?;
-
-    if format != SUPPORTED_FORMAT {
-        return Err(UnsupportedFormat(format.into()).into())
-    }
-
-    serde_json::from_value(main_file)
-        .map_err(|err| err.into())
-}
-
-fn format_mods(path: PathBuf) -> Result<Vec<Mod>> {
-    if !path.exists() || !path.is_dir() {
-        return Ok(vec![]);
-    }
-
-    let mut result = Vec::new();
-
-    for entry in fs::read_dir(path)? {
-        let entry = entry?;
-        let path = entry.path();
-
-        if path.is_dir() || path.extension() != Some("json".as_ref()) {
-            continue;
-        }
-
-        let mod_file = format_mod_file(path.clone())?;
-        result.push(Mod {
-            download: mod_file.download,
-            file: path.with_extension("jar").file_name().unwrap().to_os_string().into_string().unwrap()
-        })
-    }
-
-    Ok(result)
-}
-
-fn format_mod_file(path: PathBuf) -> Result<ModFile> {
-    serde_json::from_str(fs::read_to_string(path)?.as_str())
-        .map_err(|err| err.into())
+    Ok(())
 }

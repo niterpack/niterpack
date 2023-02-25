@@ -8,6 +8,7 @@ use std::env;
 use clap::{arg, command, Command};
 use reqwest::Url;
 use crate::build::build;
+use crate::format::ProjectFormatting;
 use crate::log::UnwrapOrLogExt;
 use crate::project::{Mod, Project};
 
@@ -42,6 +43,8 @@ fn main() {
             build(project, current_dir.join("build")).unwrap_or_log();
         },
         Some(("add", sub_matches)) => {
+            let formatting = ProjectFormatting::new(current_dir.clone());
+
             let download = sub_matches.get_one::<String>("LINK").unwrap();
             let download_url = Url::parse(download).unwrap_or_log();
             let file_name = download_url
@@ -55,23 +58,20 @@ fn main() {
                 download.into()
             );
 
-            format::create_mod_file(
-                &mod_data,
-                current_dir
-                    .join("mods")
-                    .join(file_name)
-                    .with_extension("json")
+            formatting.create_mod(
+                file_name,
+                &mod_data
             ).unwrap_or_log();
 
             log!("Added mod '{}'", file_name)
         },
         Some(("init", _)) => {
             let project = Project::new(
-                current_dir.file_name().unwrap().to_string_lossy().to_string(),
+                current_dir.file_name().unwrap().to_os_string().into_string().unwrap(),
                 "0.1.0".into()
             );
 
-            project.create_files(current_dir).unwrap_or_log();
+            project.create(current_dir).unwrap_or_log();
 
             log!("Created modpack '{}'", project.name)
         },

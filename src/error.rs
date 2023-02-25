@@ -1,5 +1,7 @@
+use std::ffi::OsString;
 use std::fmt;
 use std::fmt::Formatter;
+use std::path::Path;
 
 pub type Error = Box<dyn std::error::Error>;
 
@@ -17,15 +19,38 @@ impl fmt::Display for ModAlreadyExists {
 impl std::error::Error for ModAlreadyExists {}
 
 #[derive(Debug)]
-pub struct FormatValueExpected;
+pub struct ValueExpected {
+    pub value: String,
+    pub file: Option<OsString>
+}
 
-impl fmt::Display for FormatValueExpected {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "value for 'format' in 'niter.json' not found")
+impl ValueExpected {
+    pub fn new(value: String, file: Option<OsString>) -> Self {
+        ValueExpected {
+            value,
+            file
+        }
+    }
+
+    pub fn from_path(value: String, path: &Path) -> Self {
+        Self::new(
+            value,
+            path.file_name().map(|name| name.to_os_string())
+        )
     }
 }
 
-impl std::error::Error for FormatValueExpected {}
+impl fmt::Display for ValueExpected {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        if let Some(file) = self.file.as_ref().and_then(|f| f.to_str()) {
+            write!(f, "value for '{}' in '{}' expected, but not found", self.value, file)
+        } else {
+            write!(f, "value for '{}' expected, but not found", self.value)
+        }
+    }
+}
+
+impl std::error::Error for ValueExpected {}
 
 #[derive(Debug)]
 pub struct AlreadyInitiated;

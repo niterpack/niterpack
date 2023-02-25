@@ -21,11 +21,11 @@ impl Project {
     }
 
     pub fn format(path: PathBuf) -> Result<Self> {
-        crate::format::format(path)
+        crate::format::format_project(path)
     }
 
-    pub fn create_files(&self, path: PathBuf) -> Result<()> {
-        crate::format::create_main_file(self, path.join("niter.json"))
+    pub fn create(&self, path: PathBuf) -> Result<()> {
+        crate::format::create_project(self, path)
     }
 }
 
