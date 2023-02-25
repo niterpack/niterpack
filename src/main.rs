@@ -42,7 +42,8 @@ fn main() {
             build(project, current_dir.join("build")).unwrap_or_log();
         },
         Some(("add", sub_matches)) => {
-            let download_url = &Url::parse(sub_matches.get_one::<String>("LINK").unwrap()).unwrap_or_log();
+            let download = sub_matches.get_one::<String>("LINK").unwrap();
+            let download_url = Url::parse(download).unwrap_or_log();
             let file_name = download_url
                 .path_segments()
                 .and_then(|segments| segments.last())
@@ -51,7 +52,7 @@ fn main() {
 
             let mod_data = Mod::new(
                 file_name.into(),
-                download_url.clone().into()
+                download.into()
             );
 
             format::create_mod_file(
