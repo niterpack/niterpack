@@ -1,6 +1,7 @@
 pub mod source;
 
 use std::path::PathBuf;
+use serde::{Deserialize, Serialize};
 use crate::error::Result;
 use crate::project::source::Source;
 
@@ -32,20 +33,28 @@ impl Project {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Mod {
+    #[serde(skip)]
+    pub name: String,
     pub file: Option<String>,
     pub source: Source
 }
 
 impl Mod {
     pub fn new(
+        name: String,
         file: Option<String>,
         source: Source
     ) -> Self {
         Mod {
+            name,
             file,
             source
         }
+    }
+
+    pub fn file_or_source(&self) -> Result<String> {
+       Ok(self.file.clone().unwrap_or(self.source.file_name()?))
     }
 }

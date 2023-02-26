@@ -11,26 +11,28 @@ pub fn build(project: Project, path: PathBuf) -> Result<()> {
 pub fn build_installation(project: Project, path: PathBuf) -> Result<()> {
     if path.exists() {
         if path.is_file() {
-            fs::remove_file(path.clone())?
+            fs::remove_file(&path)?
         } else {
-            fs::remove_dir_all(path.clone())?
+            fs::remove_dir_all(&path)?
         }
     }
 
-    fs::create_dir_all(path.clone())?;
+    fs::create_dir_all(&path)?;
 
     let mods_dir = path.join("mods");
-    fs::create_dir(mods_dir.clone())?;
+    fs::create_dir(&mods_dir)?;
 
     let client = reqwest::blocking::Client::builder()
         .build()?;
 
     for mod_data in project.mods {
-        log!("Downloading {}", mod_data.file);
+        let file_name = mod_data.file_or_source()?;
 
-        let response = client.get(mod_data.download).send()?;
+        log!("Downloading {}", file_name);
+
+        let response = client.get(mod_data.source.url()).send()?;
         let body = response.text()?;
-        let mut file = fs::File::create(mods_dir.join(mod_data.file))?;
+        let mut file = fs::File::create(mods_dir.join(file_name))?;
 
         std::io::copy(&mut body.as_bytes(), &mut file)?;
     }

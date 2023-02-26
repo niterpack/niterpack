@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 use serde::{Serialize, Deserialize};
-use serde_json::{json, Value};
+use serde_json::Value;
 use crate::error::{Result, ValueExpected, AlreadyInitiated, MainFileNotFound, ModAlreadyExists, UnsupportedFormat};
 use crate::project::{Project, Mod};
 
@@ -49,20 +49,9 @@ impl ProjectFormatting {
     pub fn format_mod(&self, name: &str) -> Result<Mod> {
         let path = self.mod_path(name);
 
-        let mod_data = serde_json::from_str::<Value>(fs::read_to_string(&path)?.as_str())?;
-
-        Ok(Mod::new(
-            path.with_extension("jar")
-                .file_name()
-                .unwrap()
-                .to_os_string()
-                .into_string()
-                .unwrap(),
-            mod_data["download"]
-                .as_str()
-                .ok_or(ValueExpected::from_path("download".into(), &path))?
-                .into()
-        ))
+        let mut mod_data = serde_json::from_str::<Mod>(fs::read_to_string(&path)?.as_str())?;
+        mod_data.name = name.into();
+        Ok(mod_data)
     }
 
     pub fn format_main_file(&self) -> Result<MainFile> {
@@ -91,14 +80,12 @@ impl ProjectFormatting {
         let path = self.mod_path(name);
 
         if path.exists() {
-            return Err(ModAlreadyExists(mod_data.file.clone()).into());
+            return Err(ModAlreadyExists(name.into()).into());
         }
 
         serde_json::to_writer_pretty(
             fs::File::create(path)?,
-            &json!({
-                "download": &mod_data.download
-            })
+            mod_data
         )?;
 
         Ok(())
@@ -155,7 +142,7 @@ pub fn create_project(project: &Project, path: PathBuf) -> Result<()> {
     formatting.create_main_file(project)?;
 
     for mod_data in &project.mods {
-        formatting.create_mod(mod_data.file.as_str(), mod_data)?;
+        formatting.create_mod(mod_data.name.as_str(), mod_data)?;
     }
 
     Ok(())

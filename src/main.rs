@@ -6,11 +6,11 @@ mod error;
 
 use std::env;
 use clap::{arg, command, Command};
-use reqwest::Url;
 use crate::build::build;
 use crate::format::ProjectFormatting;
 use crate::log::UnwrapOrLogExt;
 use crate::project::{Mod, Project};
+use crate::project::source::Source;
 
 fn cli() -> Command {
     command!()
@@ -22,6 +22,7 @@ fn cli() -> Command {
         .subcommand(
             Command::new("add")
                 .about("Adds a new mod")
+                .arg(arg!(<NAME>  "Name of the new mod"))
                 .arg(arg!(<LINK>  "Download link to the new mod"))
         )
         .subcommand(
@@ -45,25 +46,23 @@ fn main() {
         Some(("add", sub_matches)) => {
             let formatting = ProjectFormatting::new(current_dir.clone());
 
+            let name = sub_matches.get_one::<String>("NAME").unwrap();
             let download = sub_matches.get_one::<String>("LINK").unwrap();
-            let download_url = Url::parse(download).unwrap_or_log();
-            let file_name = download_url
-                .path_segments()
-                .and_then(|segments| segments.last())
-                .and_then(|name| if name.is_empty() { None } else { Some(name) })
-                .unwrap();
 
             let mod_data = Mod::new(
-                file_name.into(),
-                download.into()
+                name.clone(),
+                None,
+                Source::Download {
+                    url: download.clone()
+                }
             );
 
             formatting.create_mod(
-                file_name,
+                name,
                 &mod_data
             ).unwrap_or_log();
 
-            log!("Added mod '{}'", file_name)
+            log!("Added mod '{}'", name)
         },
         Some(("init", _)) => {
             let project = Project::new(
