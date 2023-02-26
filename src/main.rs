@@ -48,7 +48,7 @@ fn main() {
             build(project, current_dir.join("build")).unwrap_or_log();
         },
         Some(("add", sub_matches)) => {
-            let formatting = ProjectFormatting::new(current_dir.clone());
+            let formatting = ProjectFormatting::format(current_dir.clone()).unwrap_or_log();
 
             let name = sub_matches.get_one::<String>("NAME").unwrap();
             let download = sub_matches.get_one::<String>("LINK").unwrap();
@@ -69,7 +69,7 @@ fn main() {
             log!("Added mod '{}'", name)
         },
         Some(("remove", sub_matches)) => {
-            let formatting = ProjectFormatting::new(current_dir.clone());
+            let formatting = ProjectFormatting::format(current_dir.clone()).unwrap_or_log();
 
             let name = sub_matches.get_one::<String>("NAME").unwrap();
 

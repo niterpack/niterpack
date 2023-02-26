@@ -7,27 +7,37 @@ use crate::project::{Project, Mod};
 
 const SUPPORTED_FORMAT: &str = "0beta";
 
-#[derive(Serialize, Deserialize)]
-pub struct MainFile {
+#[derive(Debug, Serialize, Deserialize)]
+struct MainFile {
     format: String,
     name: String,
     version: String
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct ProjectFormatting {
-    path: PathBuf
+    path: PathBuf,
+    main_file: MainFile
 }
 
 impl ProjectFormatting {
-    pub fn new(path: PathBuf) -> ProjectFormatting {
-        ProjectFormatting {
-            path
-        }
+    pub fn format(path: PathBuf) -> Result<ProjectFormatting> {
+        let main_file = format_main_file(path.join("niter.json"))?;
+
+        Ok(ProjectFormatting {
+            path,
+            main_file
+        })
     }
 
-    pub fn main_file_path(&self) -> PathBuf {
-        self.path.join("niter.json")
+    pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatting> {
+        let main_file: MainFile = project.into();
+        create_main_file(path.join("niter.json"), &main_file)?;
+
+        Ok(ProjectFormatting {
+            path,
+            main_file
+        })
     }
 
     pub fn mods_path(&self) -> PathBuf {
@@ -54,25 +64,6 @@ impl ProjectFormatting {
         Ok(mod_data)
     }
 
-    pub fn format_main_file(&self) -> Result<MainFile> {
-        let path = self.main_file_path();
-
-        if !path.exists() || !path.is_file() {
-            return Err(MainFileNotFound.into());
-        }
-
-        let main_file: Value = serde_json::from_str(fs::read_to_string(&path)?.as_str())?;
-
-        let format = main_file["format"]
-            .as_str()
-            .ok_or(ValueExpected::from_path("format".into(), &path))?;
-
-        if format != SUPPORTED_FORMAT {
-            return Err(UnsupportedFormat(format.into()).into())
-        }
-
-        Ok(serde_json::from_value(main_file)?)
-    }
 
     pub fn create_mod(&self, name: &str, mod_data: &Mod) -> Result<()> {
         self.create_mods_dir()?;
@@ -91,23 +82,6 @@ impl ProjectFormatting {
         Ok(())
     }
 
-    fn create_main_file(&self, project: &Project) -> Result<()> {
-        let path = self.main_file_path();
-
-        if path.exists() {
-            return Err(AlreadyInitiated.into());
-        }
-
-        let main_file = MainFile {
-            format: SUPPORTED_FORMAT.into(),
-            name: project.name.clone(),
-            version: project.version.clone()
-        };
-
-        serde_json::to_writer_pretty(fs::File::create(path)?, &main_file)
-            .map_err(|err| err.into())
-    }
-
     pub fn remove_mod(&self, name: &str) -> Result<()> {
         let path = self.mod_path(name);
 
@@ -117,10 +91,58 @@ impl ProjectFormatting {
     }
 }
 
-pub fn format_project(path: PathBuf) -> Result<Project> {
-    let formatting = ProjectFormatting::new(path);
 
-    let main_file = formatting.format_main_file()?;
+impl From<&Project> for MainFile {
+    fn from(value: &Project) -> Self {
+        MainFile {
+            format: SUPPORTED_FORMAT.into(),
+            name: value.name.clone(),
+            version: value.version.clone()
+        }
+    }
+}
+
+
+fn format_main_file(path: PathBuf) -> Result<MainFile> {
+    if !path.exists() || !path.is_file() {
+        return Err(MainFileNotFound.into());
+    }
+
+    let main_file: Value = serde_json::from_str(fs::read_to_string(&path)?.as_str())?;
+
+    let format = main_file["format"]
+        .as_str()
+        .ok_or(ValueExpected::from_path("format".into(), &path))?;
+
+    if format != SUPPORTED_FORMAT {
+        return Err(UnsupportedFormat(format.into()).into())
+    }
+
+    Ok(serde_json::from_value(main_file)?)
+}
+
+fn create_main_file(path: PathBuf, main_file: &MainFile) -> Result<()> {
+    if path.exists() {
+        return Err(AlreadyInitiated.into());
+    }
+
+    serde_json::to_writer_pretty(fs::File::create(path)?, main_file)
+        .map_err(|err| err.into())
+}
+
+pub fn create_project(project: &Project, path: PathBuf) -> Result<()> {
+    let formatting = ProjectFormatting::create(path, project)?;
+
+    for mod_data in &project.mods {
+        formatting.create_mod(mod_data.name.as_str(), mod_data)?;
+    }
+
+    Ok(())
+}
+
+pub fn format_project(path: PathBuf) -> Result<Project> {
+    let formatting = ProjectFormatting::format(path)?;
+
     let mods_path = formatting.mods_path();
     let mut mods: Vec<Mod> = vec![];
 
@@ -138,20 +160,8 @@ pub fn format_project(path: PathBuf) -> Result<Project> {
     }
 
     Ok(Project {
-        name: main_file.name,
-        version: main_file.version,
+        name: formatting.main_file.name,
+        version: formatting.main_file.version,
         mods
     })
-}
-
-pub fn create_project(project: &Project, path: PathBuf) -> Result<()> {
-    let formatting = ProjectFormatting::new(path);
-
-    formatting.create_main_file(project)?;
-
-    for mod_data in &project.mods {
-        formatting.create_mod(mod_data.name.as_str(), mod_data)?;
-    }
-
-    Ok(())
 }
