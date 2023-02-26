@@ -37,6 +37,7 @@ impl Project {
 pub struct Mod {
     #[serde(skip)]
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub file: Option<String>,
     pub source: Source
 }
