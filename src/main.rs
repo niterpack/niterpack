@@ -26,6 +26,10 @@ fn cli() -> Command {
                 .arg(arg!(<LINK>  "Download link to the new mod"))
         )
         .subcommand(
+            Command::new("remove")
+                .about("Removes an existing mod")
+                .arg(arg!(<NAME>  "Name of the mod")))
+        .subcommand(
             Command::new("init")
                 .about("Creates a new Niter project in the current directory")
         )
@@ -63,6 +67,15 @@ fn main() {
             ).unwrap_or_log();
 
             log!("Added mod '{}'", name)
+        },
+        Some(("remove", sub_matches)) => {
+            let formatting = ProjectFormatting::new(current_dir.clone());
+
+            let name = sub_matches.get_one::<String>("NAME").unwrap();
+
+            formatting.remove_mod(name).unwrap_or_log();
+
+            log!("Removed mod '{}'", name)
         },
         Some(("init", _)) => {
             let project = Project::new(

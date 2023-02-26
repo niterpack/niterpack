@@ -107,6 +107,14 @@ impl ProjectFormatting {
         serde_json::to_writer_pretty(fs::File::create(path)?, &main_file)
             .map_err(|err| err.into())
     }
+
+    pub fn remove_mod(&self, name: &str) -> Result<()> {
+        let path = self.mod_path(name);
+
+        fs::remove_file(path)?;
+
+        Ok(())
+    }
 }
 
 pub fn format_project(path: PathBuf) -> Result<Project> {
