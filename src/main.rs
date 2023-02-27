@@ -45,7 +45,7 @@ fn main() {
 
             log!("Building modpack {}, version {}", project.name, project.version);
 
-            build(project, current_dir.join("build")).unwrap_or_log();
+            build(&project, current_dir.join("build")).unwrap_or_log();
         },
         Some(("add", sub_matches)) => {
             let formatting = ProjectFormatting::format(current_dir.clone()).unwrap_or_log();

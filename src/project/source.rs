@@ -18,7 +18,7 @@ impl Source {
         }
     }
 
-    pub fn url(self) -> String {
+    pub fn url(&self) -> &str {
         match self {
             Download { url } => url
         }
