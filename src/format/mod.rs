@@ -91,7 +91,6 @@ impl ProjectFormatter {
         ).map_err_to_niter(&path)?;
 
         mod_data.name = name.into();
-
         Ok(mod_data)
     }
 
@@ -100,22 +99,16 @@ impl ProjectFormatter {
         self.create_mods_dir()?;
 
         let path = self.mod_path(name);
-
         serde_json::to_writer_pretty(
             fs::File::create(&path)
                 .map_err_to_niter(&path)?,
             mod_data
-        ).map_err_to_niter(&path)?;
-
-        Ok(())
+        ).map_err_to_niter(&path)
     }
 
     pub fn remove_mod(&self, name: &str) -> Result<()> {
         let path = self.mod_path(name);
-
-        fs::remove_file(&path).map_err_to_niter(&path)?;
-
-        Ok(())
+        fs::remove_file(&path).map_err_to_niter(&path)
     }
 }
 
@@ -145,7 +138,6 @@ fn format_main_file(path: PathBuf) -> Result<MainFile> {
     let format = main_file
         .get("format")
         .ok_or_else(|| Error::Serde(path.clone(), serde::de::Error::missing_field("format")))?;
-
     let format = format
         .as_str()
         .ok_or_else(|| Error::Serde(path.clone(), serde::de::Error::invalid_type(Unexpected::from_value(format), &"a string")))?;
@@ -182,7 +174,6 @@ pub fn format_project(path: PathBuf) -> Result<Project> {
     let formatter = ProjectFormatter::format(path)?;
 
     let mut mods: Vec<Mod> = Vec::new();
-
     for mod_name in formatter.mods()? {
         mods.push(formatter.format_mod(&mod_name)?)
     }
