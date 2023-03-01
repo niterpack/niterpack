@@ -2,7 +2,7 @@ pub mod source;
 
 use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::project::source::Source;
 
 #[derive(Debug, Clone)]
@@ -56,6 +56,6 @@ impl Mod {
     }
 
     pub fn file_or_source(&self) -> Result<String> {
-       Ok(self.file.clone().unwrap_or(self.source.file_name()?))
+       self.file.clone().or_else(|| self.source.file_name()).ok_or(Error::InvalidSourceURL(self.name.clone(), self.source.url().into()))
     }
 }

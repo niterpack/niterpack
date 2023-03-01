@@ -1,108 +1,45 @@
-use std::ffi::OsString;
-use std::fmt;
-use std::fmt::Formatter;
-use std::path::Path;
+use std::io;
+use std::path::{Path, PathBuf};
 
-pub type Error = Box<dyn std::error::Error>;
+pub type Result<T> = core::result::Result<T, Error>;
 
-pub type Result<T> = std::result::Result<T, Error>;
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    #[error("invalid url `{1}` for mod `{0}`")]
+    InvalidSourceURL(String, String),
 
-#[derive(Debug)]
-pub struct UnknownFileName;
+    #[error("could not find `niter.json` in the current directory")]
+    MainFileNotFound,
 
-impl fmt::Display for UnknownFileName {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "unknown file name")
+    #[error("format `{0}` is not supported")]
+    UnsupportedFormat(String),
+
+    #[error("a modpack project in the current directory is already initiated")]
+    AlreadyInitiated,
+
+    #[error("{0}")]
+    Fetch(#[from] reqwest::Error),
+
+    #[error("failed to perform I/O on `{0}`: {1}")]
+    IO(PathBuf, io::Error),
+
+    #[error("failed to serialize `{0}`: {1}")]
+    Serde(PathBuf, serde_json::Error)
+}
+
+
+pub trait MapErrToNiterExt<T> {
+    fn map_err_to_niter(self, path: &Path) -> Result<T>;
+}
+
+impl<T> MapErrToNiterExt<T> for core::result::Result<T, serde_json::Error> {
+    fn map_err_to_niter(self, path: &Path) -> Result<T> {
+        self.map_err(|err| Error::Serde(path.into(), err))
     }
 }
 
-impl std::error::Error for UnknownFileName {}
-
-#[derive(Debug)]
-pub struct ModAlreadyExists(pub String);
-
-impl fmt::Display for ModAlreadyExists {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "mod '{}' already exists", self.0)
+impl<T> MapErrToNiterExt<T> for core::result::Result<T, io::Error> {
+    fn map_err_to_niter(self, path: &Path) -> Result<T> {
+        self.map_err(|err| Error::IO(path.into(), err))
     }
 }
-
-impl std::error::Error for ModAlreadyExists {}
-
-#[derive(Debug)]
-pub struct ValueExpected {
-    pub value: String,
-    pub file: Option<OsString>
-}
-
-impl ValueExpected {
-    pub fn new(value: String, file: Option<OsString>) -> Self {
-        ValueExpected {
-            value,
-            file
-        }
-    }
-
-    pub fn from_path(value: String, path: &Path) -> Self {
-        Self::new(
-            value,
-            path.file_name().map(|name| name.to_os_string())
-        )
-    }
-}
-
-impl fmt::Display for ValueExpected {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        if let Some(file) = self.file.as_ref().and_then(|f| f.to_str()) {
-            write!(f, "value for '{}' in '{}' expected, but not found", self.value, file)
-        } else {
-            write!(f, "value for '{}' expected, but not found", self.value)
-        }
-    }
-}
-
-impl std::error::Error for ValueExpected {}
-
-#[derive(Debug)]
-pub struct AlreadyInitiated;
-
-impl fmt::Display for AlreadyInitiated {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "a modpack is already initiated in this directory")
-    }
-}
-
-impl std::error::Error for AlreadyInitiated {}
-
-#[derive(Debug)]
-pub struct MainFileNotFound;
-
-impl fmt::Display for MainFileNotFound {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "could not find 'niter.json'")
-    }
-}
-
-impl std::error::Error for MainFileNotFound {}
-
-#[derive(Debug)]
-pub struct NotADirectory;
-
-impl fmt::Display for NotADirectory {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "not a directory")
-    }
-}
-
-impl std::error::Error for NotADirectory {}
-
-#[derive(Debug)]
-pub struct UnsupportedFormat(pub String);
-
-impl fmt::Display for UnsupportedFormat {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "format '{}' is not supported", self.0)
-    }
-}
-
-impl std::error::Error for UnsupportedFormat {}

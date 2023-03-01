@@ -1,7 +1,6 @@
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use crate::project::source::Source::Download;
-use crate::error::{Result, UnknownFileName};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all="snake_case")]
@@ -24,14 +23,14 @@ impl Source {
         }
     }
 
-    pub fn file_name(&self) -> Result<String> {
+    pub fn file_name(&self) -> Option<String> {
         match self {
-            Download { url } => Ok(Url::parse(url)?
+            Download { url } => Url::parse(url)
+                .ok()?
                 .path_segments()
                 .and_then(|segments| segments.last())
                 .and_then(|name| if name.is_empty() { None } else { Some(name) })
-                .ok_or(UnknownFileName)?
-                .into())
+                .map(|s| s.into())
         }
     }
 }
