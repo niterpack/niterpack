@@ -19,27 +19,27 @@ struct MainFile {
 }
 
 #[derive(Debug)]
-pub struct ProjectFormatting {
+pub struct ProjectFormatter {
     path: PathBuf,
     main_file: MainFile
 }
 
 
+impl ProjectFormatter {
 
-impl ProjectFormatting {
-    pub fn format(path: PathBuf) -> Result<ProjectFormatting> {
+    pub fn format(path: PathBuf) -> Result<ProjectFormatter> {
         let main_file = format_main_file(path.join("niter.json"))?;
-        Ok(ProjectFormatting {
+        Ok(ProjectFormatter {
             path,
             main_file
         })
     }
 
-    pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatting> {
+    pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatter> {
         let main_file: MainFile = project.into();
         create_main_file(path.join("niter.json"), &main_file)?;
 
-        Ok(ProjectFormatting {
+        Ok(ProjectFormatter {
             path,
             main_file
         })
@@ -51,6 +51,26 @@ impl ProjectFormatting {
 
     pub fn mod_path(&self, name: &str) -> PathBuf {
         self.mods_path().join(name).with_extension("json")
+    }
+
+    pub fn mods(&self) -> Result<Vec<String>> {
+        let mut mods: Vec<String> = Vec::new();
+        let mods_path = self.mods_path();
+
+        if mods_path.exists() {
+            for entry in fs::read_dir(&mods_path).map_err_to_niter(&mods_path)? {
+                let entry = entry.map_err_to_niter(&mods_path)?;
+                let path = entry.path();
+
+                if path.is_dir() || path.extension() != Some("json".as_ref()) {
+                    continue;
+                }
+
+                mods.push(path.with_extension("").file_name().unwrap().to_os_string().into_string().unwrap());
+            }
+        }
+
+        Ok(mods)
     }
 
     fn create_mods_dir(&self) -> Result<()> {
@@ -149,37 +169,27 @@ fn create_main_file(path: PathBuf, main_file: &MainFile) -> Result<()> {
 }
 
 pub fn create_project(project: &Project, path: PathBuf) -> Result<()> {
-    let formatting = ProjectFormatting::create(path, project)?;
+    let formatter = ProjectFormatter::create(path, project)?;
 
     for mod_data in &project.mods {
-        formatting.create_mod(mod_data.name.as_str(), mod_data)?;
+        formatter.create_mod(mod_data.name.as_str(), mod_data)?;
     }
 
     Ok(())
 }
 
 pub fn format_project(path: PathBuf) -> Result<Project> {
-    let formatting = ProjectFormatting::format(path)?;
+    let formatter = ProjectFormatter::format(path)?;
 
-    let mods_path = formatting.mods_path();
-    let mut mods: Vec<Mod> = vec![];
+    let mut mods: Vec<Mod> = Vec::new();
 
-    if mods_path.exists() {
-        for entry in fs::read_dir(&mods_path).map_err_to_niter(&mods_path)? {
-            let entry = entry.map_err_to_niter(&mods_path)?;
-            let path = entry.path();
-
-            if path.is_dir() || path.extension() != Some("json".as_ref()) {
-                continue;
-            }
-
-            mods.push(formatting.format_mod(path.file_name().unwrap().to_str().unwrap())?);
-        }
+    for mod_name in formatter.mods()? {
+        mods.push(formatter.format_mod(&mod_name)?)
     }
 
     Ok(Project {
-        name: formatting.main_file.name,
-        version: formatting.main_file.version,
+        name: formatter.main_file.name,
+        version: formatter.main_file.version,
         mods
     })
 }

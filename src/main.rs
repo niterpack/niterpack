@@ -7,7 +7,7 @@ mod error;
 use std::env;
 use clap::{arg, command, Command};
 use crate::build::build;
-use crate::format::ProjectFormatting;
+use crate::format::ProjectFormatter;
 use crate::log::UnwrapOrLogExt;
 use crate::project::{Mod, Project};
 use crate::project::source::Source;
@@ -48,7 +48,7 @@ fn main() {
             build(&project, current_dir.join("build")).unwrap_or_log();
         },
         Some(("add", sub_matches)) => {
-            let formatting = ProjectFormatting::format(current_dir.clone()).unwrap_or_log();
+            let formatter = ProjectFormatter::format(current_dir.clone()).unwrap_or_log();
 
             let name = sub_matches.get_one::<String>("NAME").unwrap();
             let download = sub_matches.get_one::<String>("LINK").unwrap();
@@ -61,7 +61,7 @@ fn main() {
                 }
             );
 
-            formatting.create_mod(
+            formatter.create_mod(
                 name,
                 &mod_data
             ).unwrap_or_log();
@@ -69,11 +69,11 @@ fn main() {
             log!("Added mod '{}'", name)
         },
         Some(("remove", sub_matches)) => {
-            let formatting = ProjectFormatting::format(current_dir.clone()).unwrap_or_log();
+            let formatter = ProjectFormatter::format(current_dir.clone()).unwrap_or_log();
 
             let name = sub_matches.get_one::<String>("NAME").unwrap();
 
-            formatting.remove_mod(name).unwrap_or_log();
+            formatter.remove_mod(name).unwrap_or_log();
 
             log!("Removed mod '{}'", name)
         },
