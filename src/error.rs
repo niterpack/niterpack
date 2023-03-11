@@ -5,8 +5,8 @@ pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("invalid url `{1}` for mod `{0}`")]
-    InvalidSourceURL(String, String),
+    #[error("invalid source")]
+    InvalidSource,
 
     #[error("could not find `niter.json` in the current directory")]
     MainFileNotFound,
@@ -20,11 +20,14 @@ pub enum Error {
     #[error("{0}")]
     Fetch(#[from] reqwest::Error),
 
+    #[error("{0}")]
+    URL(#[from] url::ParseError),
+
     #[error("failed to perform I/O on `{0}`: {1}")]
     IO(PathBuf, io::Error),
 
-    #[error("failed to serialize `{0}`: {1}")]
-    Serde(PathBuf, serde_json::Error)
+    #[error("failed to serialize: {0}")]
+    Serde(#[from] serde_json::Error)
 }
 
 
@@ -33,8 +36,8 @@ pub trait MapErrToNiterExt<T> {
 }
 
 impl<T> MapErrToNiterExt<T> for core::result::Result<T, serde_json::Error> {
-    fn map_err_to_niter(self, path: &Path) -> Result<T> {
-        self.map_err(|err| Error::Serde(path.into(), err))
+    fn map_err_to_niter(self, _: &Path) -> Result<T> {
+        self.map_err(|err| err.into())
     }
 }
 

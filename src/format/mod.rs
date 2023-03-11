@@ -137,10 +137,10 @@ fn format_main_file(path: PathBuf) -> Result<MainFile> {
 
     let format = main_file
         .get("format")
-        .ok_or_else(|| Error::Serde(path.clone(), serde::de::Error::missing_field("format")))?;
+        .ok_or_else(|| Error::Serde(serde::de::Error::missing_field("format")))?;
     let format = format
         .as_str()
-        .ok_or_else(|| Error::Serde(path.clone(), serde::de::Error::invalid_type(Unexpected::from_value(format), &"a string")))?;
+        .ok_or_else(|| Error::Serde(serde::de::Error::invalid_type(Unexpected::from_value(format), &"a string")))?;
 
     if format != SUPPORTED_FORMAT {
         return Err(Error::UnsupportedFormat(format.into()));

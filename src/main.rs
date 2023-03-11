@@ -3,6 +3,7 @@ mod build;
 mod log;
 mod project;
 mod error;
+mod modrinth;
 
 use std::env;
 use clap::{arg, command, Command};
@@ -22,8 +23,9 @@ fn cli() -> Command {
         .subcommand(
             Command::new("add")
                 .about("Adds a new mod")
-                .arg(arg!(<NAME>  "Name of the new mod"))
-                .arg(arg!(<LINK>  "Download link to the new mod"))
+                .arg(arg!(<SOURCE>      "Source of the new mod"))
+                .arg(arg!(--name <NAME> "Name of the new mod")
+                    .required(true))
         )
         .subcommand(
             Command::new("remove")
@@ -50,14 +52,14 @@ fn main() {
         Some(("add", sub_matches)) => {
             let formatter = ProjectFormatter::format(current_dir.clone()).unwrap_or_log();
 
-            let name = sub_matches.get_one::<String>("NAME").unwrap();
-            let download = sub_matches.get_one::<String>("LINK").unwrap();
+            let name = sub_matches.get_one::<String>("name").unwrap();
+            let source = sub_matches.get_one::<String>("SOURCE").unwrap();
 
             let mod_data = Mod::new(
                 name.clone(),
                 None,
-                Source::Download {
-                    url: download.clone()
+                Source::Modrinth {
+                    version_id: source.clone()
                 }
             );
 

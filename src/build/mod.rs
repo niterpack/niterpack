@@ -27,7 +27,7 @@ pub fn build_installation(project: &Project, path: PathBuf) -> Result<()> {
 
     for mod_data in &project.mods {
         let file_name = mod_data.file_or_source()?;
-        let url = mod_data.source.url();
+        let url = mod_data.source.url()?;
 
         log!("Downloading {}", file_name);
 
