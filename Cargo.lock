@@ -504,6 +504,7 @@ dependencies = [
  "serde_json",
  "termcolor",
  "thiserror",
+ "url",
 ]
 
 [[package]]
