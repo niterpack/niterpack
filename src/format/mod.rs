@@ -95,10 +95,10 @@ impl ProjectFormatter {
     }
 
 
-    pub fn create_mod(&self, name: &str, mod_data: &Mod) -> Result<()> {
+    pub fn create_mod(&self, mod_data: &Mod) -> Result<()> {
         self.create_mods_dir()?;
 
-        let path = self.mod_path(name);
+        let path = self.mod_path(&mod_data.name);
         serde_json::to_writer_pretty(
             fs::File::create(&path)
                 .map_err_to_niter(&path)?,
@@ -164,7 +164,7 @@ pub fn create_project(project: &Project, path: PathBuf) -> Result<()> {
     let formatter = ProjectFormatter::create(path, project)?;
 
     for mod_data in &project.mods {
-        formatter.create_mod(mod_data.name.as_str(), mod_data)?;
+        formatter.create_mod(mod_data)?;
     }
 
     Ok(())
