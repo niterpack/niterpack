@@ -1,15 +1,15 @@
 mod format;
 mod build;
-mod log;
+mod logger;
 mod project;
 mod error;
 mod modrinth;
 
 use std::env;
 use clap::{arg, command, Command};
+use log::info;
 use crate::build::build;
 use crate::format::ProjectFormatter;
-use crate::log::UnwrapOrLogExt;
 use crate::project::{Mod, Project};
 use crate::project::source::Source;
 
@@ -38,19 +38,21 @@ fn cli() -> Command {
 }
 
 fn main() {
+    logger::init();
+
     let current_dir = env::current_dir().unwrap();
     let matches = cli().get_matches();
 
     match matches.subcommand() {
         Some(("build", _)) => {
-            let project = Project::format(current_dir.clone()).unwrap_or_log();
+            let project = Project::format(current_dir.clone()).unwrap();
 
-            log!("Building modpack {}, version {}", project.name, project.version);
+            info!("Building modpack {}, version {}", project.name, project.version);
 
-            build(&project, current_dir.join("build")).unwrap_or_log();
+            build(&project, current_dir.join("build")).unwrap();
         },
         Some(("add", sub_matches)) => {
-            let formatter = ProjectFormatter::format(current_dir.clone()).unwrap_or_log();
+            let formatter = ProjectFormatter::format(current_dir.clone()).unwrap();
 
             let name = sub_matches.get_one::<String>("name").unwrap();
             let source = sub_matches.get_one::<String>("SOURCE").unwrap();
@@ -66,18 +68,18 @@ fn main() {
             formatter.create_mod(
                 name,
                 &mod_data
-            ).unwrap_or_log();
+            ).unwrap();
 
-            log!("Added mod '{}'", name)
+            info!("Added mod '{}'", name)
         },
         Some(("remove", sub_matches)) => {
-            let formatter = ProjectFormatter::format(current_dir.clone()).unwrap_or_log();
+            let formatter = ProjectFormatter::format(current_dir.clone()).unwrap();
 
             let name = sub_matches.get_one::<String>("NAME").unwrap();
 
-            formatter.remove_mod(name).unwrap_or_log();
+            formatter.remove_mod(name).unwrap();
 
-            log!("Removed mod '{}'", name)
+            info!("Removed mod '{}'", name)
         },
         Some(("init", _)) => {
             let project = Project::new(
@@ -85,9 +87,9 @@ fn main() {
                 "0.1.0".into()
             );
 
-            project.create(current_dir).unwrap_or_log();
+            project.create(current_dir).unwrap();
 
-            log!("Created modpack '{}'", project.name)
+            info!("Created modpack '{}'", project.name)
         },
         _ => unreachable!()
     }

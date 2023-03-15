@@ -21,3 +21,4 @@ url = "2.3"
 
 termcolor = "1.2"
 thiserror = "1.0"
+log = { version = "0.4", features = ["std"] }

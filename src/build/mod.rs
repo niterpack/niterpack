@@ -1,6 +1,6 @@
 use std::fs;
 use std::path::PathBuf;
-use crate::log;
+use log::info;
 use crate::error::{MapErrToNiterExt, Result};
 use crate::project::Project;
 
@@ -29,7 +29,7 @@ pub fn build_installation(project: &Project, path: PathBuf) -> Result<()> {
         let file_name = mod_data.file_or_source()?;
         let url = mod_data.source.url()?;
 
-        log!("Downloading {}", file_name);
+        info!("Downloading {}", file_name);
 
         let mod_path = mods_dir.join(&file_name);
 
