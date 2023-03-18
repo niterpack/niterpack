@@ -35,9 +35,8 @@ pub fn build_installation(project: &Project, path: PathBuf) -> Result<()> {
         let file_name = mod_data.file_or_source()
             .wrap_err(format!("failed to get file name of mod `{}`", mod_data.name))?;
 
-        // let url = mod_data.source.url()
-        //     .wrap_err(format!("failed to get download url of mod `{}`", mod_data.name))?;
-        let url = String::from("http://google.com/adfgnaod");
+        let url = mod_data.source.url()
+            .wrap_err(format!("failed to get download url of mod `{}`", mod_data.name))?;
 
         info!("Downloading {}", file_name);
 
