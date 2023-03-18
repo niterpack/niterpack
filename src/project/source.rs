@@ -1,7 +1,7 @@
 use url::Url;
 use serde::{Deserialize, Serialize};
 use crate::project::source::Source::{Download, Modrinth};
-use crate::error::{Error, Result};
+use eyre::{eyre, Result, WrapErr};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all="snake_case")]
@@ -15,18 +15,14 @@ pub enum Source {
 }
 
 impl Source {
-    pub fn parse(string: &str) -> Source {
-        Download {
-            url: string.into()
-        }
-    }
-
     pub fn url(&self) -> Result<String> {
         match self {
             Download { url } => Ok(url.clone()),
-            Modrinth { version_id } => Ok(crate::modrinth::get_version(version_id)?
+            Modrinth { version_id } => Ok(crate::modrinth::get_version(version_id)
+                .wrap_err("failed to get modrinth version")?
+                .ok_or_else(|| eyre!("invalid modrinth version id"))?
                 .primary_file()
-                .ok_or_else(|| Error::InvalidSource)?
+                .ok_or_else(|| eyre!("primary file not found"))?
                 .url
                 .clone())
         }
@@ -39,10 +35,12 @@ impl Source {
                 .and_then(|segments| segments.last())
                 .and_then(|name| if name.is_empty() { None } else { Some(name) })
                 .map(|s| s.into())
-                .ok_or_else(|| Error::InvalidSource),
-            Modrinth { version_id } => Ok(crate::modrinth::get_version(version_id)?
+                .ok_or_else(|| eyre!("invalid url")),
+            Modrinth { version_id } => Ok(crate::modrinth::get_version(version_id)
+                .wrap_err("failed to get modrinth version")?
+                .ok_or_else(|| eyre!("invalid modrinth version id"))?
                 .primary_file()
-                .ok_or_else(|| Error::InvalidSource)?
+                .ok_or_else(|| eyre!("primary file not found"))?
                 .filename
                 .clone())
         }

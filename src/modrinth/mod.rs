@@ -1,6 +1,9 @@
+mod error;
+
+use reqwest::StatusCode;
 use url::Url;
 use serde::{Deserialize, Serialize};
-use crate::error::{Result};
+use crate::modrinth::error::ModrinthError;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModrinthVersion {
@@ -17,16 +20,16 @@ pub struct ModrinthVersionFile {
 }
 
 impl ModrinthVersion {
-
     pub fn primary_file(&self) -> Option<&ModrinthVersionFile> {
         self.files.iter().find(|file| file.primary == true)
     }
 }
 
-pub fn get_version(id: &str) -> Result<ModrinthVersion> {
-    Ok(serde_json::from_str(
-        reqwest::blocking::get(Url::parse("https://api.modrinth.com/v2/version/")?.join(id)?)?
-            .text()?
-            .as_str()
-    )?)
+pub fn get_version(id: &str) -> Result<Option<ModrinthVersion>, ModrinthError> {
+    let response = reqwest::blocking::get(Url::parse("https://api.modrinth.com/v2/version/")?.join(id)?)?;
+    match response.status() {
+        StatusCode::NOT_FOUND => Ok(None),
+        StatusCode::OK => Ok(Some(serde_json::from_str(response.text()?.as_str())?)),
+        status => Err(ModrinthError::UnexpectedStatusCode(status))
+    }
 }

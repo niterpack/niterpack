@@ -1,4 +1,5 @@
 mod ext;
+mod error;
 
 use std::fs;
 use std::path::PathBuf;
@@ -6,8 +7,8 @@ use serde::{Serialize, Deserialize};
 use serde::de::Unexpected;
 use serde_json::Value;
 use crate::project::{Project, Mod};
-use crate::error::{Error, MapErrToNiterExt, Result};
 use crate::format::ext::FromValueExt;
+use crate::format::error::FormatError;
 
 const SUPPORTED_FORMAT: &str = "0beta";
 
@@ -27,7 +28,7 @@ pub struct ProjectFormatter {
 
 impl ProjectFormatter {
 
-    pub fn format(path: PathBuf) -> Result<ProjectFormatter> {
+    pub fn format(path: PathBuf) -> Result<ProjectFormatter, FormatError> {
         let main_file = format_main_file(path.join("niter.json"))?;
         Ok(ProjectFormatter {
             path,
@@ -35,7 +36,7 @@ impl ProjectFormatter {
         })
     }
 
-    pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatter> {
+    pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatter, FormatError> {
         let main_file: MainFile = project.into();
         create_main_file(path.join("niter.json"), &main_file)?;
 
@@ -53,13 +54,13 @@ impl ProjectFormatter {
         self.mods_path().join(name).with_extension("json")
     }
 
-    pub fn mods(&self) -> Result<Vec<String>> {
+    pub fn mods(&self) -> Result<Vec<String>, FormatError> {
         let mut mods: Vec<String> = Vec::new();
         let mods_path = self.mods_path();
 
         if mods_path.exists() {
-            for entry in fs::read_dir(&mods_path).map_err_to_niter(&mods_path)? {
-                let entry = entry.map_err_to_niter(&mods_path)?;
+            for entry in fs::read_dir(&mods_path)? {
+                let entry = entry?;
                 let path = entry.path();
 
                 if path.is_dir() || path.extension() != Some("json".as_ref()) {
@@ -73,42 +74,41 @@ impl ProjectFormatter {
         Ok(mods)
     }
 
-    fn create_mods_dir(&self) -> Result<()> {
+    fn create_mods_dir(&self) -> Result<(), FormatError> {
         let path = self.mods_path();
         if !path.exists() {
-            fs::create_dir(self.mods_path()).map_err_to_niter(&path)?;
+            fs::create_dir(self.mods_path())?;
         }
         Ok(())
     }
 
-    pub fn format_mod(&self, name: &str) -> Result<Mod> {
+    pub fn format_mod(&self, name: &str) -> Result<Mod, FormatError> {
         let path = self.mod_path(name);
 
         let mut mod_data = serde_json::from_str::<Mod>(
-            fs::read_to_string(&path)
-                .map_err_to_niter(&path)?
+            fs::read_to_string(&path)?
                 .as_str()
-        ).map_err_to_niter(&path)?;
+        )?;
 
         mod_data.name = name.into();
         Ok(mod_data)
     }
 
 
-    pub fn create_mod(&self, mod_data: &Mod) -> Result<()> {
+    pub fn create_mod(&self, mod_data: &Mod) -> Result<(), FormatError> {
         self.create_mods_dir()?;
 
         let path = self.mod_path(&mod_data.name);
-        serde_json::to_writer_pretty(
-            fs::File::create(&path)
-                .map_err_to_niter(&path)?,
+        Ok(serde_json::to_writer_pretty(
+            fs::File::create(&path)?,
             mod_data
-        ).map_err_to_niter(&path)
+        )?)
     }
 
-    pub fn remove_mod(&self, name: &str) -> Result<()> {
+    pub fn remove_mod(&self, name: &str) -> Result<(), FormatError> {
         let path = self.mod_path(name);
-        fs::remove_file(&path).map_err_to_niter(&path)
+        fs::remove_file(&path)?;
+        Ok(())
     }
 }
 
@@ -124,43 +124,42 @@ impl From<&Project> for MainFile {
 }
 
 
-fn format_main_file(path: PathBuf) -> Result<MainFile> {
+fn format_main_file(path: PathBuf) -> Result<MainFile, FormatError> {
     if !path.exists() {
-        return Err(Error::MainFileNotFound);
+        return Err(FormatError::MainFileNotFound);
     }
 
     let main_file: Value = serde_json::from_str(
-        fs::read_to_string(&path)
-            .map_err_to_niter(&path)?
+        fs::read_to_string(&path)?
             .as_str()
-    ).map_err_to_niter(&path)?;
+    )?;
 
     let format = main_file
         .get("format")
-        .ok_or_else(|| Error::Serde(serde::de::Error::missing_field("format")))?;
+        .ok_or_else(|| FormatError::Serialization(serde::de::Error::missing_field("format")))?;
     let format = format
         .as_str()
-        .ok_or_else(|| Error::Serde(serde::de::Error::invalid_type(Unexpected::from_value(format), &"a string")))?;
+        .ok_or_else(|| FormatError::Serialization(serde::de::Error::invalid_type(Unexpected::from_value(format), &"a string")))?;
 
     if format != SUPPORTED_FORMAT {
-        return Err(Error::UnsupportedFormat(format.into()));
+        return Err(FormatError::UnsupportedFormat(format.into()));
     }
 
-    Ok(serde_json::from_value(main_file).map_err_to_niter(&path)?)
+    Ok(serde_json::from_value(main_file)?)
 }
 
-fn create_main_file(path: PathBuf, main_file: &MainFile) -> Result<()> {
+fn create_main_file(path: PathBuf, main_file: &MainFile) -> Result<(), FormatError> {
     if path.exists() {
-        return Err(Error::AlreadyInitiated);
+        return Err(FormatError::AlreadyInitialized);
     }
 
-    serde_json::to_writer_pretty(
-        fs::File::create(&path).map_err_to_niter(&path)?,
+    Ok(serde_json::to_writer_pretty(
+        fs::File::create(&path)?,
         main_file
-    ).map_err_to_niter(&path)
+    )?)
 }
 
-pub fn create_project(project: &Project, path: PathBuf) -> Result<()> {
+pub fn create_project(project: &Project, path: PathBuf) -> Result<(), FormatError> {
     let formatter = ProjectFormatter::create(path, project)?;
 
     for mod_data in &project.mods {
@@ -170,7 +169,7 @@ pub fn create_project(project: &Project, path: PathBuf) -> Result<()> {
     Ok(())
 }
 
-pub fn format_project(path: PathBuf) -> Result<Project> {
+pub fn format_project(path: PathBuf) -> Result<Project, FormatError> {
     let formatter = ProjectFormatter::format(path)?;
 
     let mut mods: Vec<Mod> = Vec::new();

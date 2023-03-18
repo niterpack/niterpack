@@ -2,7 +2,7 @@ pub mod source;
 
 use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
-use crate::error::Result;
+use eyre::Result;
 use crate::project::source::Source;
 
 #[derive(Debug, Clone)]
@@ -25,11 +25,11 @@ impl Project {
     }
 
     pub fn format(path: PathBuf) -> Result<Self> {
-        crate::format::format_project(path)
+        Ok(crate::format::format_project(path)?)
     }
 
     pub fn create(&self, path: PathBuf) -> Result<()> {
-        crate::format::create_project(self, path)
+        Ok(crate::format::create_project(self, path)?)
     }
 }
 

@@ -1,7 +1,7 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use log::info;
-use crate::error::{MapErrToNiterExt, Result};
+use eyre::{Result, WrapErr};
 use crate::project::Project;
 
 pub fn build(project: &Project, path: PathBuf) -> Result<()> {
@@ -11,35 +11,56 @@ pub fn build(project: &Project, path: PathBuf) -> Result<()> {
 pub fn build_installation(project: &Project, path: PathBuf) -> Result<()> {
     if path.exists() {
         if path.is_file() {
-            fs::remove_file(&path).map_err_to_niter(&path)?
+            fs::remove_file(&path)
+                .wrap_err("failed to remove installation file")?;
         } else {
-            fs::remove_dir_all(&path).map_err_to_niter(&path)?
+            fs::remove_dir_all(&path)
+                .wrap_err("failed to remove installation directory")?;
         }
     }
 
-    fs::create_dir_all(&path).map_err_to_niter(&path)?;
+    fs::create_dir_all(&path)
+        .wrap_err("failed to create installation directory")?;
 
     let mods_dir = path.join("mods");
-    fs::create_dir(&mods_dir).map_err_to_niter(&mods_dir)?;
+
+    fs::create_dir(&mods_dir)
+        .wrap_err("failed to create mods directory inside installation")?;
 
     let client = reqwest::blocking::Client::builder()
-        .build()?;
+        .build()
+        .wrap_err("failed to create a reqwest client")?;
 
     for mod_data in &project.mods {
-        let file_name = mod_data.file_or_source()?;
-        let url = mod_data.source.url()?;
+        let file_name = mod_data.file_or_source()
+            .wrap_err(format!("failed to get file name of mod `{}`", mod_data.name))?;
+
+        // let url = mod_data.source.url()
+        //     .wrap_err(format!("failed to get download url of mod `{}`", mod_data.name))?;
+        let url = String::from("http://google.com/adfgnaod");
 
         info!("Downloading {}", file_name);
 
-        let mod_path = mods_dir.join(&file_name);
-
-        let response = client.get(url).send()?;
-        let body = response.text()?;
-
-        let mut file = fs::File::create(&mod_path).map_err_to_niter(&mod_path)?;
-
-        std::io::copy(&mut body.as_bytes(), &mut file).map_err_to_niter(&mod_path)?;
+        download(&client, &mods_dir.join(&file_name), &url)
+            .wrap_err(format!("failed to download mod `{}`", mod_data.name))?;
     }
+
+    Ok(())
+}
+
+fn download(client: &reqwest::blocking::Client, path: &Path, url: &str) -> Result<()> {
+    let response = client
+        .get(url)
+        .send()
+        .wrap_err("failed to send request")?;
+
+    let body = response.text()?;
+
+    let mut file = fs::File::create(path)
+        .wrap_err(format!("failed to create file `{:?}`", path))?;
+
+    std::io::copy(&mut body.as_bytes(), &mut file)
+        .wrap_err("failed to copy response to file")?;
 
     Ok(())
 }

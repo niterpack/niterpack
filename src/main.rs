@@ -4,12 +4,10 @@ mod format;
 mod build;
 mod logger;
 mod project;
-mod error;
 mod modrinth;
 mod subcommand;
 
 use clap::{command, Parser};
-use log::error;
 use crate::subcommand::Subcommand;
 
 #[derive(clap::Parser)]
@@ -19,12 +17,11 @@ struct Cli {
     command: Subcommand
 }
 
-fn main() {
+fn main() -> eyre::Result<()> {
     logger::init();
 
     let cli = Cli::parse();
+    cli.command.run()?;
 
-    if let Err(err) = cli.command.run() {
-        error!("{}", err);
-    }
+    Ok(())
 }

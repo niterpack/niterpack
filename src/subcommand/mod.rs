@@ -1,8 +1,6 @@
 mod add;
 mod build;
 
-use crate::error::Result;
-
 #[derive(clap::Subcommand)]
 pub enum Subcommand {
     /// Add a new mod to the current modpack
@@ -13,7 +11,7 @@ pub enum Subcommand {
 }
 
 impl Subcommand {
-    pub fn run(&self) -> Result<()> {
+    pub fn run(&self) -> eyre::Result<()> {
         match &self {
             Subcommand::Add(args) => args.run(),
             Subcommand::Build(args) => args.run()

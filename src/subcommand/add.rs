@@ -1,7 +1,7 @@
 use std::env;
+use eyre::{eyre, WrapErr};
 use log::info;
 use url::Url;
-use crate::error::Result;
 use crate::format::ProjectFormatter;
 use crate::modrinth;
 use crate::project::Mod;
@@ -17,26 +17,22 @@ pub struct AddArgs {
     name: String
 }
 
-fn parse_source(s: &str) -> Result<Source> {
-    if let Ok(_) = modrinth::get_version(s) {
-        Ok(Source::Modrinth {
-            version_id: s.into()
-        })
-    } else {
-        Url::parse(s)?;
-        Ok(Source::Download {
-            url: s.into(),
-        })
-    }
-}
-
 impl AddArgs {
-    pub fn run(&self) -> Result<()> {
-        let mod_data = Mod::new(
-            self.name.clone(),
-            None,
-            parse_source(&self.source)?
-        );
+    pub fn parse_source(&self) -> eyre::Result<Source> {
+        if let Some(_) = modrinth::get_version(&self.source).wrap_err("failed to get modrinth version")? {
+            Ok(Source::Modrinth { version_id: self.source.clone() })
+        } else {
+            Url::parse(&self.source).map_err(|_| eyre!("invalid source url or modrinth version id"))?;
+            Ok(Source::Download { url: self.source.clone() })
+        }
+    }
+
+    pub fn mod_data(&self) -> eyre::Result<Mod> {
+        Ok(Mod::new(self.name.clone(), None, self.parse_source()?))
+    }
+
+    pub fn run(&self) -> eyre::Result<()> {
+        let mod_data = self.mod_data()?;
 
         let formatter = ProjectFormatter::format(
             env::current_dir().unwrap()

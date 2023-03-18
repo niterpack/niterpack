@@ -1,14 +1,13 @@
 use std::env;
 use log::info;
 use crate::build;
-use crate::error::Result;
 use crate::project::Project;
 
 #[derive(clap::Args)]
 pub struct BuildArgs;
 
 impl BuildArgs {
-    pub fn run(&self) -> Result<()> {
+    pub fn run(&self) -> eyre::Result<()> {
         let current_dir = env::current_dir().unwrap();
 
         build::build(
