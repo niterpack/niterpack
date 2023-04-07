@@ -4,9 +4,11 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(untagged, rename_all = "kebab-case")]
 pub enum Source {
+    #[serde(rename_all = "kebab-case")]
     Download { url: String },
+    #[serde(rename_all = "kebab-case")]
     Modrinth { version_id: String },
 }
 

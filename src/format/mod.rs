@@ -1,41 +1,43 @@
 mod error;
-mod ext;
+mod mainfile;
+mod modfile;
 
 use crate::format::error::FormatError;
-use crate::format::ext::FromValueExt;
+use crate::format::mainfile::MainFile;
+use crate::format::modfile::ModFile;
 use crate::project::{Mod, Project};
-use serde::de::Unexpected;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::fs;
 use std::path::PathBuf;
 
-const SUPPORTED_FORMAT: &str = "0beta";
-
-#[derive(Debug, Serialize, Deserialize)]
-struct MainFile {
-    format: String,
-    name: String,
-    version: String,
-}
-
 #[derive(Debug)]
 pub struct ProjectFormatter {
-    path: PathBuf,
     main_file: MainFile,
+    path: PathBuf,
 }
 
 impl ProjectFormatter {
     pub fn format(path: PathBuf) -> Result<ProjectFormatter, FormatError> {
-        let main_file = format_main_file(path.join("niter.json"))?;
-        Ok(ProjectFormatter { path, main_file })
+        let main_path = path.join("niter.toml");
+        if !main_path.exists() {
+            return Err(FormatError::MainFileNotFound);
+        }
+
+        Ok(ProjectFormatter {
+            main_file: MainFile::format(&fs::read_to_string(main_path)?)?,
+            path,
+        })
     }
 
     pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatter, FormatError> {
-        let main_file: MainFile = project.into();
-        create_main_file(path.join("niter.json"), &main_file)?;
+        let main_path = path.join("niter.toml");
+        if main_path.exists() {
+            return Err(FormatError::AlreadyInitialized);
+        }
 
-        Ok(ProjectFormatter { path, main_file })
+        let main_file = MainFile::from(project.clone());
+        fs::write(&main_path, main_file.to_string()?)?;
+
+        Ok(ProjectFormatter { main_file, path })
     }
 
     pub fn mods_path(&self) -> PathBuf {
@@ -43,7 +45,7 @@ impl ProjectFormatter {
     }
 
     pub fn mod_path(&self, name: &str) -> PathBuf {
-        self.mods_path().join(name).with_extension("json")
+        self.mods_path().join(name).with_extension("toml")
     }
 
     pub fn mods(&self) -> Result<Vec<String>, FormatError> {
@@ -55,7 +57,7 @@ impl ProjectFormatter {
                 let entry = entry?;
                 let path = entry.path();
 
-                if path.is_dir() || path.extension() != Some("json".as_ref()) {
+                if path.is_dir() || path.extension() != Some("toml".as_ref()) {
                     continue;
                 }
 
@@ -84,66 +86,17 @@ impl ProjectFormatter {
     pub fn format_mod(&self, name: &str) -> Result<Mod, FormatError> {
         let path = self.mod_path(name);
 
-        let mut mod_data = serde_json::from_str::<Mod>(fs::read_to_string(path)?.as_str())?;
-
-        mod_data.name = name.into();
-        Ok(mod_data)
+        let mod_file = toml::from_str::<ModFile>(&fs::read_to_string(path)?)?;
+        Ok(mod_file.to_mod(|| name.to_string()))
     }
 
     pub fn create_mod(&self, mod_data: &Mod) -> Result<(), FormatError> {
         self.create_mods_dir()?;
 
         let path = self.mod_path(&mod_data.name);
-        Ok(serde_json::to_writer_pretty(
-            fs::File::create(path)?,
-            mod_data,
-        )?)
+        fs::write(path, toml::to_string(&ModFile::from(mod_data.clone()))?)?;
+        Ok(())
     }
-}
-
-impl From<&Project> for MainFile {
-    fn from(value: &Project) -> Self {
-        MainFile {
-            format: SUPPORTED_FORMAT.into(),
-            name: value.name.clone(),
-            version: value.version.clone(),
-        }
-    }
-}
-
-fn format_main_file(path: PathBuf) -> Result<MainFile, FormatError> {
-    if !path.exists() {
-        return Err(FormatError::MainFileNotFound);
-    }
-
-    let main_file: Value = serde_json::from_str(fs::read_to_string(&path)?.as_str())?;
-
-    let format = main_file
-        .get("format")
-        .ok_or_else(|| FormatError::Serialization(serde::de::Error::missing_field("format")))?;
-    let format = format.as_str().ok_or_else(|| {
-        FormatError::Serialization(serde::de::Error::invalid_type(
-            Unexpected::from_value(format),
-            &"a string",
-        ))
-    })?;
-
-    if format != SUPPORTED_FORMAT {
-        return Err(FormatError::UnsupportedFormat(format.into()));
-    }
-
-    Ok(serde_json::from_value(main_file)?)
-}
-
-fn create_main_file(path: PathBuf, main_file: &MainFile) -> Result<(), FormatError> {
-    if path.exists() {
-        return Err(FormatError::AlreadyInitialized);
-    }
-
-    Ok(serde_json::to_writer_pretty(
-        fs::File::create(&path)?,
-        main_file,
-    )?)
 }
 
 pub fn create_project(project: &Project, path: PathBuf) -> Result<(), FormatError> {
@@ -165,8 +118,8 @@ pub fn format_project(path: PathBuf) -> Result<Project, FormatError> {
     }
 
     Ok(Project {
-        name: formatter.main_file.name,
-        version: formatter.main_file.version,
+        name: formatter.main_file.modpack.name,
+        version: formatter.main_file.modpack.version,
         mods,
     })
 }

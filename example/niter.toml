@@ -1,0 +1,7 @@
+[modpack]
+name = "Just modded hardcore"
+version = "0.1.0"
+
+[minecraft]
+loader = "fabric"
+version = "1.19.3"
