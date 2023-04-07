@@ -1,13 +1,13 @@
+mod error;
 mod mainfile;
 mod modfile;
-mod error;
 
 use crate::format::error::FormatError;
+use crate::format::mainfile::MainFile;
+use crate::format::modfile::ModFile;
 use crate::project::{Mod, Project};
 use std::fs;
 use std::path::PathBuf;
-use crate::format::mainfile::MainFile;
-use crate::format::modfile::ModFile;
 
 #[derive(Debug)]
 pub struct ProjectFormatter {
@@ -22,7 +22,10 @@ impl ProjectFormatter {
             return Err(FormatError::MainFileNotFound);
         }
 
-        Ok(ProjectFormatter { main_file: MainFile::format(&fs::read_to_string(main_path)?)?, path })
+        Ok(ProjectFormatter {
+            main_file: MainFile::format(&fs::read_to_string(main_path)?)?,
+            path,
+        })
     }
 
     pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatter, FormatError> {

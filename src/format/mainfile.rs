@@ -1,22 +1,20 @@
-use serde::{Deserialize, Serialize};
 use crate::project::Project;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MainFile {
-    pub modpack: Modpack
+    pub modpack: Modpack,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Modpack {
     pub name: String,
-    pub version: String
+    pub version: String,
 }
 
 impl MainFile {
     pub fn new(modpack: Modpack) -> MainFile {
-        MainFile {
-            modpack
-        }
+        MainFile { modpack }
     }
 
     pub fn format(str: &str) -> Result<MainFile, toml::de::Error> {
@@ -36,9 +34,6 @@ impl From<Project> for MainFile {
 
 impl Modpack {
     pub fn new(name: String, version: String) -> Modpack {
-        Modpack {
-            name,
-            version
-        }
+        Modpack { name, version }
     }
 }
