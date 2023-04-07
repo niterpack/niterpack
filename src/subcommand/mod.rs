@@ -11,7 +11,7 @@ pub enum Subcommand {
     Add(add::AddArgs),
 
     /// Build the current modpack
-    Build(build::BuildArgs)
+    Build(build::BuildArgs),
 }
 
 impl Subcommand {
@@ -19,7 +19,7 @@ impl Subcommand {
         match &self {
             Subcommand::Init(args) => args.run(),
             Subcommand::Add(args) => args.run(),
-            Subcommand::Build(args) => args.run()
+            Subcommand::Build(args) => args.run(),
         }
     }
 }

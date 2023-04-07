@@ -15,5 +15,5 @@ pub enum FormatError {
     Serialization(#[from] serde_json::Error),
 
     #[error("error while performing I/O")]
-    IO(#[from] io::Error)
+    IO(#[from] io::Error),
 }

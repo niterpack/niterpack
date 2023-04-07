@@ -1,7 +1,7 @@
-use std::env;
+use crate::project::Project;
 use eyre::ContextCompat;
 use log::info;
-use crate::project::Project;
+use std::env;
 
 #[derive(clap::Args)]
 pub struct InitArgs;
@@ -15,7 +15,7 @@ impl InitArgs {
                 .file_name()
                 .and_then(|name| name.to_os_string().into_string().ok())
                 .wrap_err("failed to get file name of the current directory")?,
-            String::from("0.1.0")
+            String::from("0.1.0"),
         );
 
         project.create(current_dir)?;

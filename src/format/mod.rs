@@ -1,14 +1,14 @@
-mod ext;
 mod error;
+mod ext;
 
+use crate::format::error::FormatError;
+use crate::format::ext::FromValueExt;
+use crate::project::{Mod, Project};
+use serde::de::Unexpected;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::fs;
 use std::path::PathBuf;
-use serde::{Serialize, Deserialize};
-use serde::de::Unexpected;
-use serde_json::Value;
-use crate::project::{Project, Mod};
-use crate::format::ext::FromValueExt;
-use crate::format::error::FormatError;
 
 const SUPPORTED_FORMAT: &str = "0beta";
 
@@ -16,34 +16,26 @@ const SUPPORTED_FORMAT: &str = "0beta";
 struct MainFile {
     format: String,
     name: String,
-    version: String
+    version: String,
 }
 
 #[derive(Debug)]
 pub struct ProjectFormatter {
     path: PathBuf,
-    main_file: MainFile
+    main_file: MainFile,
 }
 
-
 impl ProjectFormatter {
-
     pub fn format(path: PathBuf) -> Result<ProjectFormatter, FormatError> {
         let main_file = format_main_file(path.join("niter.json"))?;
-        Ok(ProjectFormatter {
-            path,
-            main_file
-        })
+        Ok(ProjectFormatter { path, main_file })
     }
 
     pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatter, FormatError> {
         let main_file: MainFile = project.into();
         create_main_file(path.join("niter.json"), &main_file)?;
 
-        Ok(ProjectFormatter {
-            path,
-            main_file
-        })
+        Ok(ProjectFormatter { path, main_file })
     }
 
     pub fn mods_path(&self) -> PathBuf {
@@ -67,7 +59,14 @@ impl ProjectFormatter {
                     continue;
                 }
 
-                mods.push(path.with_extension("").file_name().unwrap().to_os_string().into_string().unwrap());
+                mods.push(
+                    path.with_extension("")
+                        .file_name()
+                        .unwrap()
+                        .to_os_string()
+                        .into_string()
+                        .unwrap(),
+                );
             }
         }
 
@@ -85,15 +84,11 @@ impl ProjectFormatter {
     pub fn format_mod(&self, name: &str) -> Result<Mod, FormatError> {
         let path = self.mod_path(name);
 
-        let mut mod_data = serde_json::from_str::<Mod>(
-            fs::read_to_string(&path)?
-                .as_str()
-        )?;
+        let mut mod_data = serde_json::from_str::<Mod>(fs::read_to_string(&path)?.as_str())?;
 
         mod_data.name = name.into();
         Ok(mod_data)
     }
-
 
     pub fn create_mod(&self, mod_data: &Mod) -> Result<(), FormatError> {
         self.create_mods_dir()?;
@@ -101,7 +96,7 @@ impl ProjectFormatter {
         let path = self.mod_path(&mod_data.name);
         Ok(serde_json::to_writer_pretty(
             fs::File::create(&path)?,
-            mod_data
+            mod_data,
         )?)
     }
 
@@ -112,34 +107,32 @@ impl ProjectFormatter {
     }
 }
 
-
 impl From<&Project> for MainFile {
     fn from(value: &Project) -> Self {
         MainFile {
             format: SUPPORTED_FORMAT.into(),
             name: value.name.clone(),
-            version: value.version.clone()
+            version: value.version.clone(),
         }
     }
 }
-
 
 fn format_main_file(path: PathBuf) -> Result<MainFile, FormatError> {
     if !path.exists() {
         return Err(FormatError::MainFileNotFound);
     }
 
-    let main_file: Value = serde_json::from_str(
-        fs::read_to_string(&path)?
-            .as_str()
-    )?;
+    let main_file: Value = serde_json::from_str(fs::read_to_string(&path)?.as_str())?;
 
     let format = main_file
         .get("format")
         .ok_or_else(|| FormatError::Serialization(serde::de::Error::missing_field("format")))?;
-    let format = format
-        .as_str()
-        .ok_or_else(|| FormatError::Serialization(serde::de::Error::invalid_type(Unexpected::from_value(format), &"a string")))?;
+    let format = format.as_str().ok_or_else(|| {
+        FormatError::Serialization(serde::de::Error::invalid_type(
+            Unexpected::from_value(format),
+            &"a string",
+        ))
+    })?;
 
     if format != SUPPORTED_FORMAT {
         return Err(FormatError::UnsupportedFormat(format.into()));
@@ -155,7 +148,7 @@ fn create_main_file(path: PathBuf, main_file: &MainFile) -> Result<(), FormatErr
 
     Ok(serde_json::to_writer_pretty(
         fs::File::create(&path)?,
-        main_file
+        main_file,
     )?)
 }
 
@@ -180,6 +173,6 @@ pub fn format_project(path: PathBuf) -> Result<Project, FormatError> {
     Ok(Project {
         name: formatter.main_file.name,
         version: formatter.main_file.version,
-        mods
+        mods,
     })
 }

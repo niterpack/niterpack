@@ -1,7 +1,7 @@
-use std::env;
-use log::info;
 use crate::build;
 use crate::project::Project;
+use log::info;
+use std::env;
 
 #[derive(clap::Args)]
 pub struct BuildArgs;
@@ -12,7 +12,7 @@ impl BuildArgs {
 
         build::build(
             &Project::format(current_dir.clone())?,
-            current_dir.join("build")
+            current_dir.join("build"),
         )?;
 
         info!("Finished building modpack");
