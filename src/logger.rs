@@ -37,7 +37,7 @@ impl log::Log for NiterLogger {
                         .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
                         .and_then(|_| write!(buffer, "error:"))
                         .and_then(|_| buffer.reset())
-                        .and_then(|_| write!(buffer, " {}\n", record.args()))
+                        .and_then(|_| writeln!(buffer, " {}", record.args()))
                         .and_then(|_| self.err_writer.print(&buffer))
                 }
                 Level::Warn => {
@@ -46,14 +46,14 @@ impl log::Log for NiterLogger {
                         .set_color(ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true))
                         .and_then(|_| write!(buffer, "warning:"))
                         .and_then(|_| buffer.reset())
-                        .and_then(|_| write!(buffer, " {}\n", record.args()))
+                        .and_then(|_| writeln!(buffer, " {}", record.args()))
                         .and_then(|_| self.err_writer.print(&buffer))
                 }
                 _ => {
                     let mut buffer = self.writer.buffer();
                     buffer
                         .reset()
-                        .and_then(|_| write!(buffer, "{}\n", record.args()))
+                        .and_then(|_| writeln!(buffer, "{}", record.args()))
                         .and_then(|_| self.writer.print(&buffer))
                 }
             }

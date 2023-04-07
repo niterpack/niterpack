@@ -10,7 +10,7 @@ impl<'a> FromValueExt<'a> for Unexpected<'a> {
         match value {
             Value::String(o) => Unexpected::Str(o),
             Value::Array(_) => Unexpected::Seq,
-            Value::Bool(o) => Unexpected::Bool(o.clone()),
+            Value::Bool(o) => Unexpected::Bool(*o),
             Value::Null => Unexpected::Other("null"),
             Value::Object(_) => Unexpected::Map,
             Value::Number(o) => {

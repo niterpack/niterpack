@@ -84,7 +84,7 @@ impl ProjectFormatter {
     pub fn format_mod(&self, name: &str) -> Result<Mod, FormatError> {
         let path = self.mod_path(name);
 
-        let mut mod_data = serde_json::from_str::<Mod>(fs::read_to_string(&path)?.as_str())?;
+        let mut mod_data = serde_json::from_str::<Mod>(fs::read_to_string(path)?.as_str())?;
 
         mod_data.name = name.into();
         Ok(mod_data)
@@ -95,14 +95,14 @@ impl ProjectFormatter {
 
         let path = self.mod_path(&mod_data.name);
         Ok(serde_json::to_writer_pretty(
-            fs::File::create(&path)?,
+            fs::File::create(path)?,
             mod_data,
         )?)
     }
 
     pub fn remove_mod(&self, name: &str) -> Result<(), FormatError> {
         let path = self.mod_path(name);
-        fs::remove_file(&path)?;
+        fs::remove_file(path)?;
         Ok(())
     }
 }

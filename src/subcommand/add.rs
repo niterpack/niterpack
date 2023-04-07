@@ -44,7 +44,6 @@ impl AddArgs {
                         .into_iter()
                         .find(|version| &version.version_number == version_name)
                         .ok_or_else(|| eyre!("could not find version `{}`", version_name))?
-                        .clone()
                         .id
                 }
             },
