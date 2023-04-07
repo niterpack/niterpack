@@ -1,5 +1,5 @@
 [package]
-name = "niterpack"
+name = "niter"
 version = "0.0.0"
 description = "A CLI tool for managing and packing Minecraft modpacks"
 repository = "https://github.com/panda885/niter"
