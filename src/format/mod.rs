@@ -1,4 +1,5 @@
 mod mainfile;
+mod modfile;
 mod error;
 
 use crate::format::error::FormatError;
@@ -6,6 +7,7 @@ use crate::project::{Mod, Project};
 use std::fs;
 use std::path::PathBuf;
 use crate::format::mainfile::MainFile;
+use crate::format::modfile::ModFile;
 
 #[derive(Debug)]
 pub struct ProjectFormatter {
@@ -81,20 +83,16 @@ impl ProjectFormatter {
     pub fn format_mod(&self, name: &str) -> Result<Mod, FormatError> {
         let path = self.mod_path(name);
 
-        let mut mod_data = serde_json::from_str::<Mod>(fs::read_to_string(path)?.as_str())?;
-
-        mod_data.name = name.into();
-        Ok(mod_data)
+        let mod_file = toml::from_str::<ModFile>(&fs::read_to_string(path)?)?;
+        Ok(mod_file.to_mod(|| name.to_string()))
     }
 
     pub fn create_mod(&self, mod_data: &Mod) -> Result<(), FormatError> {
         self.create_mods_dir()?;
 
         let path = self.mod_path(&mod_data.name);
-        Ok(serde_json::to_writer_pretty(
-            fs::File::create(path)?,
-            mod_data,
-        )?)
+        fs::write(path, toml::to_string(&ModFile::from(mod_data.clone()))?)?;
+        Ok(())
     }
 }
 

@@ -2,7 +2,6 @@ pub mod source;
 
 use crate::project::source::Source;
 use eyre::Result;
-use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -30,11 +29,9 @@ impl Project {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct Mod {
-    #[serde(skip)]
     pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub file: Option<String>,
     pub source: Source,
 }
