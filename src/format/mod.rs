@@ -99,12 +99,6 @@ impl ProjectFormatter {
             mod_data,
         )?)
     }
-
-    pub fn remove_mod(&self, name: &str) -> Result<(), FormatError> {
-        let path = self.mod_path(name);
-        fs::remove_file(path)?;
-        Ok(())
-    }
 }
 
 impl From<&Project> for MainFile {
