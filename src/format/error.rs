@@ -8,11 +8,14 @@ pub enum FormatError {
     #[error("a modpack in this directory is already initialized")]
     AlreadyInitialized,
 
-    #[error("format `{0}` is not supported")]
-    UnsupportedFormat(String),
+    #[error("error while deserializing")]
+    Deserialization(#[from] toml::de::Error),
 
     #[error("error while serializing")]
-    Serialization(#[from] serde_json::Error),
+    Serialization(#[from] toml::ser::Error),
+
+    #[error("error while serializing")]
+    Serde(#[from] serde_json::Error),
 
     #[error("error while performing I/O")]
     IO(#[from] io::Error),
