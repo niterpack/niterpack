@@ -21,11 +21,11 @@ impl Project {
     }
 
     pub fn format(path: PathBuf) -> Result<Self> {
-        Ok(crate::format::format_project(path)?)
+        crate::format::format_project(path)
     }
 
     pub fn create(&self, path: PathBuf) -> Result<()> {
-        Ok(crate::format::create_project(self, path)?)
+        crate::format::create_project(self, path)
     }
 }
 
