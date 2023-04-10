@@ -17,6 +17,10 @@ impl MainFile {
         MainFile { modpack }
     }
 
+    pub fn get_path(path: &Path) -> PathBuf {
+        path.join(MAIN_FILE_NAME)
+    }
+
     pub fn from_str(str: &str) -> Result<MainFile, toml::de::Error> {
         toml::from_str(str)
     }

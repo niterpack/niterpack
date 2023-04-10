@@ -33,7 +33,7 @@ impl ProjectFormatter {
     }
 
     pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatter> {
-        let main_path = path.join("niter.toml");
+        let main_path = MainFile::get_path(&path);
 
         ensure!(
             !main_path.exists(),
