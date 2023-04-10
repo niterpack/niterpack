@@ -9,14 +9,14 @@ pub enum Source {
     #[serde(rename_all = "kebab-case")]
     Download { url: String },
     #[serde(rename_all = "kebab-case")]
-    Modrinth { version_id: String },
+    Modrinth { version: String },
 }
 
 impl Source {
     pub fn url(&self) -> Result<String> {
         match self {
             Download { url } => Ok(url.clone()),
-            Modrinth { version_id } => Ok(crate::modrinth::get_version(version_id)
+            Modrinth { version } => Ok(crate::modrinth::get_version(version)
                 .wrap_err("failed to get modrinth version")?
                 .ok_or_else(|| eyre!("invalid modrinth version id"))?
                 .primary_file()
@@ -34,7 +34,7 @@ impl Source {
                 .and_then(|name| if name.is_empty() { None } else { Some(name) })
                 .map(|s| s.into())
                 .ok_or_else(|| eyre!("invalid url")),
-            Modrinth { version_id } => Ok(crate::modrinth::get_version(version_id)
+            Modrinth { version } => Ok(crate::modrinth::get_version(version)
                 .wrap_err("failed to get modrinth version")?
                 .ok_or_else(|| eyre!("invalid modrinth version id"))?
                 .primary_file()
