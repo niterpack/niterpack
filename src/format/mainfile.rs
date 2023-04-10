@@ -38,7 +38,7 @@ impl MainFile {
         toml::to_string(self)
     }
 
-    pub fn create(&self, path: &Path) -> Result<()> {
+    pub fn to_file(&self, path: &Path) -> Result<()> {
         fs::write(path, self.to_string()?)?;
         Ok(())
     }
