@@ -1,5 +1,5 @@
-mod mainfile;
-mod modfile;
+pub mod mainfile;
+pub mod modfile;
 
 use crate::format::mainfile::MainFile;
 use crate::format::modfile::ModFile;
