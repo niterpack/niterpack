@@ -30,7 +30,7 @@ impl MainFile {
         toml::from_str(str)
     }
 
-    pub fn format(path: &Path) -> Result<MainFile> {
+    pub fn from_file(path: &Path) -> Result<MainFile> {
         Ok(Self::from_str(&fs::read_to_string(path)?)?)
     }
 
