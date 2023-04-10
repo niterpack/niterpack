@@ -33,22 +33,8 @@ impl ProjectFormatter {
     }
 
     pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatter> {
-        let main_path = MainFile::get_path(&path);
-
-        ensure!(
-            !main_path.exists(),
-            "a modpack is already initialized in the current directory",
-        );
-
         let main_file = MainFile::from(project.clone());
-        fs::write(
-            &main_path,
-            main_file
-                .to_string()
-                .wrap_err("failed to create `niter.toml`")?,
-        )
-        .wrap_err("failed to create `niter.toml`")?;
-
+        main_file.create(&MainFile::get_path(&path))?;
         Ok(ProjectFormatter { main_file, path })
     }
 
