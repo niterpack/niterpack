@@ -4,7 +4,7 @@ mod modfile;
 use crate::format::mainfile::MainFile;
 use crate::format::modfile::ModFile;
 use crate::project::{Mod, Project};
-use eyre::{ensure, Result, WrapErr};
+use eyre::{Result, WrapErr};
 use std::fs;
 use std::path::PathBuf;
 
@@ -16,18 +16,8 @@ pub struct ProjectFormatter {
 
 impl ProjectFormatter {
     pub fn format(path: PathBuf) -> Result<ProjectFormatter> {
-        let main_path = path.join("niter.toml");
-
-        ensure!(
-            main_path.exists(),
-            "could not find `niter.toml` in the current directory",
-        );
-
         Ok(ProjectFormatter {
-            main_file: MainFile::from_str(
-                &fs::read_to_string(main_path).wrap_err("failed to format `niter.toml`")?,
-            )
-            .wrap_err("failed to format `niter.toml`")?,
+            main_file: MainFile::format(&path).wrap_err("failed to format main file")?,
             path,
         })
     }
