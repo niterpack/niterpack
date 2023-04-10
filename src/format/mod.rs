@@ -24,7 +24,7 @@ impl ProjectFormatter {
         );
 
         Ok(ProjectFormatter {
-            main_file: MainFile::format(
+            main_file: MainFile::from_str(
                 &fs::read_to_string(main_path).wrap_err("failed to format `niter.toml`")?,
             )
             .wrap_err("failed to format `niter.toml`")?,

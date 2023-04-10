@@ -17,7 +17,7 @@ impl MainFile {
         MainFile { modpack }
     }
 
-    pub fn format(str: &str) -> Result<MainFile, toml::de::Error> {
+    pub fn from_str(str: &str) -> Result<MainFile, toml::de::Error> {
         toml::from_str(str)
     }
 
