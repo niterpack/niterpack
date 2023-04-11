@@ -25,7 +25,7 @@ impl ProjectFormatter {
     pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatter> {
         let main_file = MainFile::from(project.clone());
         main_file
-            .to_file(&MainFile::get_path(&path))
+            .to_file(&MainFile::in_path(&path))
             .wrap_err("failed to create main file")?;
         Ok(ProjectFormatter { main_file, path })
     }

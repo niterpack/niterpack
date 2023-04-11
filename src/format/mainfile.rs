@@ -20,7 +20,7 @@ impl MainFile {
         MainFile { modpack }
     }
 
-    pub fn get_path(path: &Path) -> PathBuf {
+    pub fn in_path(path: &Path) -> PathBuf {
         path.join("niter.toml")
     }
 
