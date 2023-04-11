@@ -33,7 +33,7 @@ impl AddArgs {
             "only `mod` project types are allowed"
         );
 
-        let version_id = match &self.version_name {
+        let version = match &self.version_name {
             Some(version_name) => match modrinth::get_version(version_name)
                 .wrap_err("failed to fetch modrinth version")?
             {
@@ -54,11 +54,7 @@ impl AddArgs {
                 .clone(),
         };
 
-        Ok(Mod::new(
-            project.slug,
-            None,
-            Source::Modrinth { version_id },
-        ))
+        Ok(Mod::new(project.slug, None, Source::Modrinth { version }))
     }
 
     pub fn run(&self) -> eyre::Result<()> {
