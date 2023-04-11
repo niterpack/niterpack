@@ -17,7 +17,8 @@ pub struct ProjectFormatter {
 impl ProjectFormatter {
     pub fn format(path: PathBuf) -> Result<ProjectFormatter> {
         Ok(ProjectFormatter {
-            main_file: MainFile::from_file(&MainFile::in_path(&path)).wrap_err("failed to format main file")?,
+            main_file: MainFile::from_file(MainFile::in_path(&path))
+                .wrap_err("failed to format main file")?,
             path,
         })
     }
@@ -25,7 +26,7 @@ impl ProjectFormatter {
     pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatter> {
         let main_file = MainFile::from(project.clone());
         main_file
-            .to_file(&MainFile::in_path(&path))
+            .to_file(MainFile::in_path(&path))
             .wrap_err("failed to create main file")?;
         Ok(ProjectFormatter { main_file, path })
     }
@@ -70,7 +71,7 @@ impl ProjectFormatter {
     }
 
     pub fn format_mod(&self, name: &str) -> Result<Mod> {
-        ModFile::from_file(&ModFile::in_path(&self.path, name))
+        ModFile::from_file(ModFile::in_path(&self.path, name))
             .map(|file| file.to_mod(|| name.to_string()))
     }
 
@@ -78,7 +79,7 @@ impl ProjectFormatter {
         self.create_mods_dir()
             .wrap_err("failed to create mods directory")?;
 
-        ModFile::from(mod_data.clone()).to_file(&ModFile::in_path(&self.path, &mod_data.name))
+        ModFile::from(mod_data.clone()).to_file(ModFile::in_path(&self.path, &mod_data.name))
     }
 }
 
