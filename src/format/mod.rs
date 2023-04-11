@@ -95,7 +95,7 @@ pub fn create_project(project: &Project, path: PathBuf) -> Result<()> {
     Ok(())
 }
 
-pub fn format_project(path: PathBuf) -> Result<Project> {
+pub fn format_all(path: PathBuf) -> Result<Project> {
     let formatter = ProjectFormatter::format(path)?;
 
     let mut mods: Vec<Mod> = Vec::new();
