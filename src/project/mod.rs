@@ -44,7 +44,7 @@ impl Mod {
     pub fn file_or_source(&self) -> Result<String> {
         match self.file.clone() {
             Some(file) => Ok(file),
-            None => self.source.file_name(),
+            None => self.source.file_name(&self.name),
         }
     }
 }

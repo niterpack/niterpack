@@ -33,7 +33,7 @@ pub fn build_installation(project: &Project, path: PathBuf) -> Result<()> {
             mod_data.name
         ))?;
 
-        let url = mod_data.source.url().wrap_err(format!(
+        let url = mod_data.source.url(&mod_data.name).wrap_err(format!(
             "failed to get download url of mod `{}`",
             mod_data.name
         ))?;

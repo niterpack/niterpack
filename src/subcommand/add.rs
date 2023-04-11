@@ -54,11 +54,7 @@ impl AddArgs {
                 .clone(),
         };
 
-        Ok(Mod::new(
-            project.slug,
-            None,
-            Source::Modrinth { version },
-        ))
+        Ok(Mod::new(project.slug, None, Source::Modrinth { version }))
     }
 
     pub fn run(&self) -> eyre::Result<()> {
