@@ -17,7 +17,7 @@ pub struct ProjectFormatter {
 impl ProjectFormatter {
     pub fn format(path: PathBuf) -> Result<ProjectFormatter> {
         Ok(ProjectFormatter {
-            main_file: MainFile::from_file(&path).wrap_err("failed to format main file")?,
+            main_file: MainFile::from_file(&MainFile::in_path(&path)).wrap_err("failed to format main file")?,
             path,
         })
     }
