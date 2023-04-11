@@ -4,8 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub const MAIN_FILE_NAME: &str = "niter.toml";
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MainFile {
     pub modpack: Modpack,
@@ -23,7 +21,7 @@ impl MainFile {
     }
 
     pub fn get_path(path: &Path) -> PathBuf {
-        path.join(MAIN_FILE_NAME)
+        path.join("niter.toml")
     }
 
     pub fn from_str(str: &str) -> Result<MainFile, toml::de::Error> {
