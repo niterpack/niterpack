@@ -1,10 +1,10 @@
-mod mainfile;
-mod modfile;
+pub mod mainfile;
+pub mod modfile;
 
 use crate::format::mainfile::MainFile;
 use crate::format::modfile::ModFile;
 use crate::project::{Mod, Project};
-use eyre::{ensure, Result, WrapErr};
+use eyre::{Result, WrapErr};
 use std::fs;
 use std::path::PathBuf;
 
@@ -16,48 +16,22 @@ pub struct ProjectFormatter {
 
 impl ProjectFormatter {
     pub fn format(path: PathBuf) -> Result<ProjectFormatter> {
-        let main_path = path.join("niter.toml");
-
-        ensure!(
-            main_path.exists(),
-            "could not find `niter.toml` in the current directory",
-        );
-
         Ok(ProjectFormatter {
-            main_file: MainFile::format(
-                &fs::read_to_string(main_path).wrap_err("failed to format `niter.toml`")?,
-            )
-            .wrap_err("failed to format `niter.toml`")?,
+            main_file: MainFile::from_file(&path).wrap_err("failed to format main file")?,
             path,
         })
     }
 
     pub fn create(path: PathBuf, project: &Project) -> Result<ProjectFormatter> {
-        let main_path = path.join("niter.toml");
-
-        ensure!(
-            !main_path.exists(),
-            "a modpack is already initialized in the current directory",
-        );
-
         let main_file = MainFile::from(project.clone());
-        fs::write(
-            &main_path,
-            main_file
-                .to_string()
-                .wrap_err("failed to create `niter.toml`")?,
-        )
-        .wrap_err("failed to create `niter.toml`")?;
-
+        main_file
+            .to_file(&MainFile::in_path(&path))
+            .wrap_err("failed to create main file")?;
         Ok(ProjectFormatter { main_file, path })
     }
 
     pub fn mods_path(&self) -> PathBuf {
         self.path.join("mods")
-    }
-
-    pub fn mod_path(&self, name: &str) -> PathBuf {
-        self.mods_path().join(name).with_extension("toml")
     }
 
     pub fn mods(&self) -> Result<Vec<String>> {
@@ -96,19 +70,15 @@ impl ProjectFormatter {
     }
 
     pub fn format_mod(&self, name: &str) -> Result<Mod> {
-        let path = self.mod_path(name);
-
-        let mod_file = toml::from_str::<ModFile>(&fs::read_to_string(path)?)?;
-        Ok(mod_file.to_mod(|| name.to_string()))
+        ModFile::from_file(&ModFile::in_path(&self.path, name))
+            .map(|file| file.to_mod(|| name.to_string()))
     }
 
     pub fn create_mod(&self, mod_data: &Mod) -> Result<()> {
         self.create_mods_dir()
             .wrap_err("failed to create mods directory")?;
 
-        let path = self.mod_path(&mod_data.name);
-        fs::write(path, toml::to_string(&ModFile::from(mod_data.clone()))?)?;
-        Ok(())
+        ModFile::from(mod_data.clone()).to_file(&ModFile::in_path(&self.path, &mod_data.name))
     }
 }
 

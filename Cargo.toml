@@ -1,5 +1,5 @@
 [package]
-name = "niter"
+name = "niterpack"
 version = "0.0.0"
 description = "A CLI tool for managing and packing Minecraft modpacks"
 repository = "https://github.com/panda885/niter"
@@ -9,6 +9,10 @@ categories = ["command-line-utilities"]
 keywords = ["Minecraft", "modpack"]
 readme = "README.md"
 edition = "2021"
+
+[[bin]]
+name = "niter"
+path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.1", features = ["derive"] }

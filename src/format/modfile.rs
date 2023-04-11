@@ -1,6 +1,9 @@
 use crate::project::source::Source;
 use crate::project::Mod;
+use eyre::Result;
 use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ModFile {
@@ -20,6 +23,27 @@ impl ModFile {
             file: self.file.clone(),
             source: self.source.clone(),
         }
+    }
+
+    pub fn in_path(path: &Path, mod_name: &str) -> PathBuf {
+        path.join(mod_name).with_extension("toml")
+    }
+
+    pub fn from_str(str: &str) -> Result<ModFile, toml::de::Error> {
+        toml::from_str(str)
+    }
+
+    pub fn from_file(path: &Path) -> Result<ModFile> {
+        Ok(Self::from_str(&fs::read_to_string(path)?)?)
+    }
+
+    pub fn to_string(&self) -> Result<String, toml::ser::Error> {
+        toml::to_string(self)
+    }
+
+    pub fn to_file(&self, path: &Path) -> Result<()> {
+        fs::write(path, self.to_string()?)?;
+        Ok(())
     }
 }
 

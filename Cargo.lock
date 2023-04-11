@@ -530,7 +530,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "niter"
+name = "niterpack"
 version = "0.0.0"
 dependencies = [
  "clap",
