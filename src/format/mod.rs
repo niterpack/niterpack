@@ -34,10 +34,6 @@ impl ProjectFormatter {
         self.path.join("mods")
     }
 
-    pub fn mod_path(&self, name: &str) -> PathBuf {
-        self.mods_path().join(name).with_extension("toml")
-    }
-
     pub fn mods(&self) -> Result<Vec<String>> {
         let mut mods: Vec<String> = Vec::new();
         let mods_path = self.mods_path();
@@ -74,19 +70,15 @@ impl ProjectFormatter {
     }
 
     pub fn format_mod(&self, name: &str) -> Result<Mod> {
-        let path = self.mod_path(name);
-
-        let mod_file = toml::from_str::<ModFile>(&fs::read_to_string(path)?)?;
-        Ok(mod_file.to_mod(|| name.to_string()))
+        ModFile::from_file(&ModFile::in_path(&self.path, name))
+            .map(|file| file.to_mod(|| name.to_string()))
     }
 
     pub fn create_mod(&self, mod_data: &Mod) -> Result<()> {
         self.create_mods_dir()
             .wrap_err("failed to create mods directory")?;
 
-        let path = self.mod_path(&mod_data.name);
-        fs::write(path, toml::to_string(&ModFile::from(mod_data.clone()))?)?;
-        Ok(())
+        ModFile::from(mod_data.clone()).to_file(&ModFile::in_path(&self.path, &mod_data.name))
     }
 }
 
