@@ -83,7 +83,7 @@ impl ProjectFormatter {
     }
 }
 
-pub fn create_project(project: &Project, path: PathBuf) -> Result<()> {
+pub fn create_all(project: &Project, path: PathBuf) -> Result<()> {
     let formatter = ProjectFormatter::create(path, project)?;
 
     for mod_data in &project.mods {

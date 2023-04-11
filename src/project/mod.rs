@@ -25,7 +25,7 @@ impl Project {
     }
 
     pub fn create(&self, path: PathBuf) -> Result<()> {
-        crate::format::create_project(self, path)
+        crate::format::create_all(self, path)
     }
 }
 
