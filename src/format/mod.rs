@@ -71,7 +71,7 @@ impl ProjectFormatter {
     }
 
     pub fn format_mod(&self, name: &str) -> Result<Mod> {
-        ModFile::from_file(ModFile::in_path(&self.path, name))
+        ModFile::from_file(ModFile::in_path(self.mods_path(), name))
             .map(|file| file.to_mod(|| name.to_string()))
     }
 
@@ -79,11 +79,11 @@ impl ProjectFormatter {
         self.create_mods_dir()
             .wrap_err("failed to create mods directory")?;
 
-        ModFile::from(mod_data.clone()).to_file(ModFile::in_path(&self.path, &mod_data.name))
+        ModFile::from(mod_data.clone()).to_file(ModFile::in_path(self.mods_path(), &mod_data.name))
     }
 }
 
-pub fn create_project(project: &Project, path: PathBuf) -> Result<()> {
+pub fn create_all(project: &Project, path: PathBuf) -> Result<()> {
     let formatter = ProjectFormatter::create(path, project)?;
 
     for mod_data in &project.mods {
@@ -95,7 +95,7 @@ pub fn create_project(project: &Project, path: PathBuf) -> Result<()> {
     Ok(())
 }
 
-pub fn format_project(path: PathBuf) -> Result<Project> {
+pub fn format_all(path: PathBuf) -> Result<Project> {
     let formatter = ProjectFormatter::format(path)?;
 
     let mut mods: Vec<Mod> = Vec::new();
