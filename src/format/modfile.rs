@@ -25,15 +25,15 @@ impl ModFile {
         }
     }
 
-    pub fn in_path(path: &Path, mod_name: &str) -> PathBuf {
-        path.join(mod_name).with_extension("toml")
+    pub fn in_path<P: AsRef<Path>>(path: P, mod_name: &str) -> PathBuf {
+        path.as_ref().join(mod_name).with_extension("toml")
     }
 
     pub fn from_str(str: &str) -> Result<ModFile, toml::de::Error> {
         toml::from_str(str)
     }
 
-    pub fn from_file(path: &Path) -> Result<ModFile> {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<ModFile> {
         Ok(Self::from_str(&fs::read_to_string(path)?)?)
     }
 
@@ -41,7 +41,7 @@ impl ModFile {
         toml::to_string(self)
     }
 
-    pub fn to_file(&self, path: &Path) -> Result<()> {
+    pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         fs::write(path, self.to_string()?)?;
         Ok(())
     }

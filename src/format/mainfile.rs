@@ -20,15 +20,15 @@ impl MainFile {
         MainFile { modpack }
     }
 
-    pub fn in_path(path: &Path) -> PathBuf {
-        path.join("niter.toml")
+    pub fn in_path<P: AsRef<Path>>(path: P) -> PathBuf {
+        path.as_ref().join("niter.toml")
     }
 
     pub fn from_str(str: &str) -> Result<MainFile, toml::de::Error> {
         toml::from_str(str)
     }
 
-    pub fn from_file(path: &Path) -> Result<MainFile> {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<MainFile> {
         Ok(Self::from_str(&fs::read_to_string(path)?)?)
     }
 
@@ -36,7 +36,7 @@ impl MainFile {
         toml::to_string(self)
     }
 
-    pub fn to_file(&self, path: &Path) -> Result<()> {
+    pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         fs::write(path, self.to_string()?)?;
         Ok(())
     }
