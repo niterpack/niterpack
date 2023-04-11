@@ -28,12 +28,12 @@ pub fn build_installation(project: &Project, path: PathBuf) -> Result<()> {
         .wrap_err("failed to create a reqwest client")?;
 
     for mod_data in &project.mods {
-        let file_name = mod_data.file_or_source().wrap_err(format!(
+        let file_name = mod_data.file_name().wrap_err(format!(
             "failed to get file name of mod `{}`",
             mod_data.name
         ))?;
 
-        let url = mod_data.source.url(&mod_data.name).wrap_err(format!(
+        let url = mod_data.download_url().wrap_err(format!(
             "failed to get download url of mod `{}`",
             mod_data.name
         ))?;
