@@ -46,21 +46,20 @@ impl Mod {
     pub fn download_url(&self) -> Result<String> {
         match &self.source {
             Download { url } => Ok(url.clone()),
-            Modrinth { version } => Ok(
-                match crate::modrinth::get_version(version)
-                    .wrap_err("failed to fetch modrinth version")?
-                {
-                    Some(version) => version.id,
-                    None => {
-                        crate::modrinth::get_versions(&self.name)
-                            .wrap_err("failed to fetch modrinth project versions")?
-                            .into_iter()
-                            .find(|modrinth_version| &modrinth_version.version_number == version)
-                            .ok_or_else(|| eyre!("could not find version `{}`", version))?
-                            .id
-                    }
-                },
-            ),
+            Modrinth { version } => Ok(match crate::modrinth::get_version(version)
+                .wrap_err("failed to fetch modrinth version")?
+            {
+                Some(version) => version,
+                None => crate::modrinth::get_versions(&self.name)
+                    .wrap_err("failed to fetch modrinth project versions")?
+                    .into_iter()
+                    .find(|modrinth_version| &modrinth_version.version_number == version)
+                    .ok_or_else(|| eyre!("could not find version `{}`", version))?,
+            }
+            .primary_file()
+            .ok_or_else(|| eyre!("primary file not found"))?
+            .url
+            .clone()),
         }
     }
 
