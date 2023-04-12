@@ -34,19 +34,7 @@ impl AddArgs {
         );
 
         let version = match &self.version_name {
-            Some(version_name) => match modrinth::get_version(version_name)
-                .wrap_err("failed to fetch modrinth version")?
-            {
-                Some(version) => version.id,
-                None => {
-                    modrinth::get_versions(&self.mod_name)
-                        .wrap_err("failed to fetch modrinth project versions")?
-                        .into_iter()
-                        .find(|version| &version.version_number == version_name)
-                        .ok_or_else(|| eyre!("could not find version `{}`", version_name))?
-                        .id
-                }
-            },
+            Some(version_name) => version_name.into(),
             None => project
                 .versions
                 .last()
