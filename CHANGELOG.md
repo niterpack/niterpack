@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-rc.0]
+
 Initial release
 
-[Unreleased]: https://github.com/panda885/niter/compare/HEAD...HEAD
+[Unreleased]: https://github.com/panda885/niter/compare/v0.1.0-rc.0...HEAD
+[0.1.0-rc.0]: https://github.com/panda885/niter/releases/tag/v0.1.0-rc.0
