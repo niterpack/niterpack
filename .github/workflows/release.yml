@@ -26,11 +26,11 @@ jobs:
           changelog: CHANGELOG.md
           token: ${{ secrets.GITHUB_TOKEN }}
   github-upload:
-    name: upload ${{ martix.os }}
+    name: upload ${{ matrix.os }}
     needs: github
-    runs-on: ${{ martix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
-      martix:
+      matrix:
         os:
           - ubuntu-latest
           - macos-latest
