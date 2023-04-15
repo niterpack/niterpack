@@ -42,6 +42,14 @@ impl ModrinthVersion {
     }
 }
 
+pub fn check_slug(slug: &str) -> bool {
+    return lazy_regex::regex_is_match!(r#"^[\w!@$()`.+,"\-']{3,64}$"#, slug);
+}
+
+pub fn check_id(id: &str) -> bool {
+    return lazy_regex::regex_is_match!(r#"^[a-zA-Z0-9]{8}$"#, id);
+}
+
 pub fn get_version(id: &str) -> Result<Option<ModrinthVersion>, ModrinthError> {
     let response = reqwest::blocking::get(format!("https://api.modrinth.com/v2/version/{}", id))?;
     match response.status() {
