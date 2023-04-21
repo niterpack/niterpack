@@ -54,11 +54,11 @@ fn fetch<T: Default + DeserializeOwned>(paths: Vec<&str>) -> Result<T, ModrinthE
 }
 
 pub fn check_slug(slug: &str) -> bool {
-    return lazy_regex::regex_is_match!(r#"^[\w!@$()`.+,"\-']{3,64}$"#, slug);
+    lazy_regex::regex_is_match!(r#"^[\w!@$()`.+,"\-']{3,64}$"#, slug)
 }
 
 pub fn check_id(id: &str) -> bool {
-    return lazy_regex::regex_is_match!(r#"^[a-zA-Z0-9]{8}$"#, id);
+    lazy_regex::regex_is_match!(r#"^[a-zA-Z0-9]{8}$"#, id)
 }
 
 pub fn get_version(id: &str) -> Result<Option<ModrinthVersion>, ModrinthError> {
