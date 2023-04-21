@@ -43,8 +43,9 @@ impl ModrinthVersion {
     }
 }
 
-fn fetch<T: Default + DeserializeOwned>(url: String) -> Result<T, ModrinthError> {
-    let response = reqwest::blocking::get(url)?;
+fn fetch<T: Default + DeserializeOwned>(paths: Vec<&str>) -> Result<T, ModrinthError> {
+    let response =
+        reqwest::blocking::get(format!("https://api.modrinth.com/v2/{}", paths.join("/")))?;
     match response.status() {
         StatusCode::NOT_FOUND => Ok(T::default()),
         StatusCode::OK => Ok(serde_json::from_str(response.text()?.as_str())?),
@@ -65,7 +66,7 @@ pub fn get_version(id: &str) -> Result<Option<ModrinthVersion>, ModrinthError> {
         return Ok(None);
     }
 
-    fetch(format!("https://api.modrinth.com/v2/version/{}", id))
+    fetch(vec!["version", id])
 }
 
 pub fn get_project(id: &str) -> Result<Option<ModrinthProject>, ModrinthError> {
@@ -73,7 +74,7 @@ pub fn get_project(id: &str) -> Result<Option<ModrinthProject>, ModrinthError> {
         return Ok(None);
     }
 
-    fetch(format!("https://api.modrinth.com/v2/project/{}", id))
+    fetch(vec!["project", id])
 }
 
 pub fn get_versions(id: &str) -> Result<Vec<ModrinthVersion>, ModrinthError> {
@@ -81,8 +82,5 @@ pub fn get_versions(id: &str) -> Result<Vec<ModrinthVersion>, ModrinthError> {
         return Ok(vec![]);
     }
 
-    fetch(format!(
-        "https://api.modrinth.com/v2/project/{}/version",
-        id
-    ))
+    fetch(vec!["project", id, "version"])
 }
