@@ -1,4 +1,4 @@
-# Niter
+# niter
 
 [![Crates.io](https://img.shields.io/crates/v/niterpack?style=flat-square)](https://crates.io/crates/niterpack)
 [![Build](https://img.shields.io/github/actions/workflow/status/panda885/niter/ci.yml?branch=main&style=flat-square)](https://github.com/panda885/niter/actions/workflows/ci.yml)
