@@ -61,13 +61,25 @@ pub fn check_id(id: &str) -> bool {
 }
 
 pub fn get_version(id: &str) -> Result<Option<ModrinthVersion>, ModrinthError> {
+    if !check_id(id) {
+        return Ok(None)
+    }
+
     fetch(format!("https://api.modrinth.com/v2/version/{}", id))
 }
 
 pub fn get_project(id: &str) -> Result<Option<ModrinthProject>, ModrinthError> {
+    if !check_slug(id) {
+        return Ok(None)
+    }
+
     fetch(format!("https://api.modrinth.com/v2/project/{}", id))
 }
 
 pub fn get_versions(id: &str) -> Result<Vec<ModrinthVersion>, ModrinthError> {
+    if !check_slug(id) {
+        return Ok(vec![])
+    }
+
     fetch(format!("https://api.modrinth.com/v2/project/{}/version", id))
 }
