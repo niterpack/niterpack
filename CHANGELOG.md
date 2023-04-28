@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Add modrinth slug and id checking
 - Remove unused `futures` crate
 
 ## [0.1.0-rc.0] - 2023-04-12
