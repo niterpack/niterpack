@@ -1,5 +1,5 @@
-use crate::project::source::Source;
 use crate::Mod;
+use crate::Source;
 use eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::fs;

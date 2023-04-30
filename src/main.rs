@@ -5,9 +5,11 @@ mod logger;
 mod modrinth;
 mod ops;
 mod project;
+mod source;
 mod subcommand;
 
 pub use project::{Mod, Project};
+pub use source::Source;
 
 use crate::subcommand::Subcommand;
 use clap::{command, Parser};

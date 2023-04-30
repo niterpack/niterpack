@@ -1,10 +1,8 @@
-use crate::project::source::Source;
-use crate::project::source::Source::{Download, Modrinth};
+use crate::Source;
+use crate::Source::{Download, Modrinth};
 use eyre::{eyre, Result, WrapErr};
 use std::path::PathBuf;
 use url::Url;
-
-pub mod source;
 
 #[derive(Debug, Clone)]
 pub struct Project {
