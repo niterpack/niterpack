@@ -7,6 +7,8 @@ mod modrinth;
 mod project;
 mod subcommand;
 
+pub use project::{Project, Mod};
+
 use crate::subcommand::Subcommand;
 use clap::{command, Parser};
 

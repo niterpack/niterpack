@@ -3,7 +3,7 @@ pub mod modfile;
 
 use crate::format::mainfile::MainFile;
 use crate::format::modfile::ModFile;
-use crate::project::{Mod, Project};
+use crate::{Mod, Project};
 use eyre::{Result, WrapErr};
 use std::fs;
 use std::path::PathBuf;

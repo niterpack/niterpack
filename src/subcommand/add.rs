@@ -2,7 +2,7 @@ use crate::format::ProjectFormatter;
 use crate::modrinth;
 use crate::modrinth::ModrinthProjectType;
 use crate::project::source::Source;
-use crate::project::Mod;
+use crate::Mod;
 use eyre::{ensure, eyre, ContextCompat, WrapErr};
 use log::info;
 use std::env;

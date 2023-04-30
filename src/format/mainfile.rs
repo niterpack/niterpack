@@ -1,4 +1,4 @@
-use crate::project::Project;
+use crate::Project;
 use eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::fs;

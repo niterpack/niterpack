@@ -1,5 +1,5 @@
 use crate::build;
-use crate::project::Project;
+use crate::Project;
 use log::info;
 use std::env;
 

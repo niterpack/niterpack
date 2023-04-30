@@ -1,4 +1,4 @@
-use crate::project::Project;
+use crate::Project;
 use eyre::{Result, WrapErr};
 use log::info;
 use std::fs;
