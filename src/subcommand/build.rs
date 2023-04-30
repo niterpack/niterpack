@@ -11,7 +11,7 @@ impl BuildArgs {
         let current_dir = env::current_dir().unwrap();
 
         ops::build(
-            &Project::format(current_dir.clone())?,
+            &Project::read(&current_dir)?,
             current_dir.join("build"),
         )?;
 

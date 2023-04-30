@@ -1,12 +1,12 @@
 extern crate core;
 
-mod format;
 mod logger;
 mod modrinth;
 mod ops;
 mod project;
 mod source;
 mod subcommand;
+mod toml;
 
 pub use project::*;
 pub use source::Source;

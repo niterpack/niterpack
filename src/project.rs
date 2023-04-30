@@ -1,7 +1,7 @@
 use crate::Source;
 use crate::Source::{Download, Modrinth};
 use eyre::{eyre, Result, WrapErr};
-use std::path::PathBuf;
+use std::path::Path;
 use url::Url;
 
 #[derive(Debug, Clone)]
@@ -98,12 +98,8 @@ impl Project {
         Project { manifest, mods }
     }
 
-    pub fn format(path: PathBuf) -> Result<Self> {
-        crate::format::format_all(path)
-    }
-
-    pub fn create(&self, path: PathBuf) -> Result<()> {
-        crate::format::create_all(self, path)
+    pub fn read<P: AsRef<Path>>(path: P) -> Result<Self> {
+        crate::toml::read_project(path)
     }
 }
 
