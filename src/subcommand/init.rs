@@ -18,7 +18,7 @@ impl InitArgs {
             String::from("0.1.0"),
         ));
 
-        project.create(current_dir)?;
+        project.write(current_dir)?;
 
         info!("Created a new modpack `{}`", &project.manifest.name);
         Ok(())

@@ -1,4 +1,3 @@
-use crate::format::ProjectFormatter;
 use crate::modrinth;
 use crate::modrinth::ModrinthProjectType;
 use crate::Mod;
@@ -48,9 +47,14 @@ impl AddArgs {
     pub fn run(&self) -> eyre::Result<()> {
         let mod_data = self.mod_data()?;
 
-        let formatter = ProjectFormatter::format(env::current_dir().unwrap())?;
-
-        formatter.create_mod(&mod_data)?;
+        crate::toml::write_mod(
+            env::current_dir()
+                .unwrap()
+                .join("mods")
+                .join(&mod_data.name)
+                .with_extension("toml"),
+            mod_data.clone(),
+        )?;
 
         info!("Added mod `{}` to modpack", mod_data.name);
         Ok(())

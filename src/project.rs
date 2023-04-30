@@ -101,6 +101,10 @@ impl Project {
     pub fn read<P: AsRef<Path>>(path: P) -> Result<Self> {
         crate::toml::read_project(path)
     }
+
+    pub fn write<P: AsRef<Path>>(&self, path: P) -> Result<()> {
+        crate::toml::write_project(path, self.clone())
+    }
 }
 
 impl From<Manifest> for Project {

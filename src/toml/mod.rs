@@ -47,6 +47,42 @@ pub fn read_mod_from_str(name: String, string: &str) -> Result<Mod> {
     Ok(mod_data.into_mod(name))
 }
 
+pub fn write_project<P: AsRef<Path>>(path: P, project: Project) -> Result<()> {
+    write_manifest(path.as_ref().join("niter.toml"), project.manifest)
+        .wrap_err("failed to write manifest file")?;
+
+    let mods_path = path.as_ref().join("mods");
+    if !mods_path.exists() {
+        fs::create_dir(&mods_path).wrap_err("failed to create mods directory")?;
+    }
+    write_mods(mods_path, project.mods).wrap_err("failed to write to mods directory")?;
+
+    Ok(())
+}
+
+pub fn write_manifest<P: AsRef<Path>>(path: P, manifest: Manifest) -> Result<()> {
+    let string = toml::to_string(&TomlManifest::from(manifest))?;
+    fs::write(path, string)?;
+    Ok(())
+}
+
+pub fn write_mods<P: AsRef<Path>>(path: P, mods: Vec<Mod>) -> Result<()> {
+    for mod_data in mods {
+        write_mod(
+            path.as_ref().join(&mod_data.name).with_extension("toml"),
+            mod_data,
+        )
+        .wrap_err("failed to write mod file")?;
+    }
+    Ok(())
+}
+
+pub fn write_mod<P: AsRef<Path>>(path: P, mod_data: Mod) -> Result<()> {
+    let string = toml::to_string(&TomlMod::from(mod_data))?;
+    fs::write(path, string)?;
+    Ok(())
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TomlManifest {
     pub modpack: TomlManifestModpack,
@@ -79,6 +115,21 @@ impl From<TomlManifest> for Manifest {
     }
 }
 
+impl From<Manifest> for TomlManifest {
+    fn from(value: Manifest) -> Self {
+        TomlManifest {
+            modpack: TomlManifestModpack {
+                name: value.name,
+                version: value.version,
+            },
+            minecraft: TomlManifestMinecraft {
+                loader: String::default(),
+                version: String::default(),
+            },
+        }
+    }
+}
+
 impl From<TomlManifest> for Project {
     fn from(value: TomlManifest) -> Self {
         Project::new(value.into())
@@ -88,5 +139,15 @@ impl From<TomlManifest> for Project {
 impl TomlMod {
     pub fn into_mod(self, name: String) -> Mod {
         Mod::new(self.name.unwrap_or(name), self.file, self.source)
+    }
+}
+
+impl From<Mod> for TomlMod {
+    fn from(value: Mod) -> Self {
+        TomlMod {
+            name: Some(value.name),
+            file: value.file,
+            source: value.source,
+        }
     }
 }
