@@ -10,6 +10,19 @@ pub struct Manifest {
     pub version: String,
 }
 
+#[derive(Debug, Clone)]
+pub struct Mod {
+    pub name: String,
+    pub file: Option<String>,
+    pub source: Source,
+}
+
+#[derive(Debug, Clone)]
+pub struct Project {
+    pub manifest: Manifest,
+    pub mods: Vec<Mod>,
+}
+
 impl Manifest {
     pub fn new(name: String, version: String) -> Self {
         Self { name, version }
@@ -20,46 +33,6 @@ impl From<Project> for Manifest {
     fn from(value: Project) -> Self {
         value.manifest
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct Project {
-    pub manifest: Manifest,
-    pub mods: Vec<Mod>,
-}
-
-impl Project {
-    pub fn new(manifest: Manifest) -> Self {
-        Self::with_mods(manifest, vec![])
-    }
-
-    pub fn with_mods(manifest: Manifest, mods: Vec<Mod>) -> Self {
-        Project { manifest, mods }
-    }
-
-    pub fn format(path: PathBuf) -> Result<Self> {
-        crate::format::format_all(path)
-    }
-
-    pub fn create(&self, path: PathBuf) -> Result<()> {
-        crate::format::create_all(self, path)
-    }
-}
-
-impl From<Manifest> for Project {
-    fn from(value: Manifest) -> Self {
-        Project {
-            manifest: value,
-            mods: vec![],
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Mod {
-    pub name: String,
-    pub file: Option<String>,
-    pub source: Source,
 }
 
 impl Mod {
@@ -112,6 +85,33 @@ impl Mod {
                 .filename
                 .clone()),
             },
+        }
+    }
+}
+
+impl Project {
+    pub fn new(manifest: Manifest) -> Self {
+        Self::with_mods(manifest, vec![])
+    }
+
+    pub fn with_mods(manifest: Manifest, mods: Vec<Mod>) -> Self {
+        Project { manifest, mods }
+    }
+
+    pub fn format(path: PathBuf) -> Result<Self> {
+        crate::format::format_all(path)
+    }
+
+    pub fn create(&self, path: PathBuf) -> Result<()> {
+        crate::format::create_all(self, path)
+    }
+}
+
+impl From<Manifest> for Project {
+    fn from(value: Manifest) -> Self {
+        Project {
+            manifest: value,
+            mods: vec![],
         }
     }
 }
