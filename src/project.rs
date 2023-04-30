@@ -1,8 +1,8 @@
-use std::path::PathBuf;
-use eyre::{eyre, Result, WrapErr};
-use url::Url;
 use crate::project::source::Source;
 use crate::project::source::Source::{Download, Modrinth};
+use eyre::{eyre, Result, WrapErr};
+use std::path::PathBuf;
+use url::Url;
 
 pub mod source;
 
@@ -56,10 +56,10 @@ impl Mod {
                     .find(|modrinth_version| &modrinth_version.version_number == version)
                     .ok_or_else(|| eyre!("could not find version `{}`", version))?,
             }
-                .primary_file()
-                .ok_or_else(|| eyre!("primary file not found"))?
-                .url
-                .clone()),
+            .primary_file()
+            .ok_or_else(|| eyre!("primary file not found"))?
+            .url
+            .clone()),
         }
     }
 
@@ -83,10 +83,10 @@ impl Mod {
                         .find(|modrinth_version| &modrinth_version.version_number == version)
                         .ok_or_else(|| eyre!("could not find version `{}`", version))?,
                 }
-                    .primary_file()
-                    .ok_or_else(|| eyre!("primary file not found"))?
-                    .filename
-                    .clone()),
+                .primary_file()
+                .ok_or_else(|| eyre!("primary file not found"))?
+                .filename
+                .clone()),
             },
         }
     }

@@ -7,7 +7,7 @@ mod ops;
 mod project;
 mod subcommand;
 
-pub use project::{Project, Mod};
+pub use project::{Mod, Project};
 
 use crate::subcommand::Subcommand;
 use clap::{command, Parser};
