@@ -51,12 +51,8 @@ pub fn read_mod_from_str(name: String, string: &str) -> Result<Mod> {
 pub fn write_project<P: AsRef<Path>>(path: P, project: Project) -> Result<()> {
     write_manifest(path.as_ref().join_manifest_file(), project.manifest)
         .wrap_err("failed to write manifest file")?;
-
-    let mods_path = path.as_ref().join_mods_dir();
-    if !mods_path.exists() {
-        fs::create_dir(&mods_path).wrap_err("failed to create mods directory")?;
-    }
-    write_mods(mods_path, project.mods).wrap_err("failed to write to mods directory")?;
+    write_mods(path.as_ref().join_mods_dir(), project.mods)
+        .wrap_err("failed to write to mods directory")?;
 
     Ok(())
 }
@@ -68,6 +64,9 @@ pub fn write_manifest<P: AsRef<Path>>(path: P, manifest: Manifest) -> Result<()>
 }
 
 pub fn write_mods<P: AsRef<Path>>(path: P, mods: Vec<Mod>) -> Result<()> {
+    if !path.as_ref().exists() {
+        fs::create_dir(&path)?;
+    }
     for mod_data in mods {
         write_mod(path.as_ref().join_mod_file(&mod_data.name), mod_data)
             .wrap_err("failed to write mod file")?;
