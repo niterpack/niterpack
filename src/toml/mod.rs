@@ -1,6 +1,7 @@
 use crate::{Manifest, Mod, Project, Source};
 use eyre::{ContextCompat, Result, WrapErr};
 use serde::{Deserialize, Serialize};
+use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -26,7 +27,12 @@ pub fn read_manifest_from_str(string: &str) -> Result<Manifest> {
 pub fn read_mods<P: AsRef<Path>>(path: P) -> Result<Vec<Mod>> {
     let mut mods = Vec::new();
     for entry in fs::read_dir(path)? {
-        let mod_data = read_mod(entry?.path()).wrap_err("failed to read mod file")?;
+        let mod_path = entry?.path();
+        if !mod_path.is_file() || mod_path.extension().and_then(OsStr::to_str) != Some("toml") {
+            continue;
+        }
+
+        let mod_data = read_mod(mod_path).wrap_err("failed to read mod file")?;
         mods.push(mod_data);
     }
     Ok(mods)
