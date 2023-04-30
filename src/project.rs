@@ -5,19 +5,36 @@ use std::path::PathBuf;
 use url::Url;
 
 #[derive(Debug, Clone)]
-pub struct Project {
+pub struct Manifest {
     pub name: String,
     pub version: String,
+}
+
+impl Manifest {
+    pub fn new(name: String, version: String) -> Self {
+        Self { name, version }
+    }
+}
+
+impl From<Project> for Manifest {
+    fn from(value: Project) -> Self {
+        value.manifest
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Project {
+    pub manifest: Manifest,
     pub mods: Vec<Mod>,
 }
 
 impl Project {
-    pub fn new(name: String, version: String) -> Self {
-        Project {
-            name,
-            version,
-            mods: vec![],
-        }
+    pub fn new(manifest: Manifest) -> Self {
+        Self::with_mods(manifest, vec![])
+    }
+
+    pub fn with_mods(manifest: Manifest, mods: Vec<Mod>) -> Self {
+        Project { manifest, mods }
     }
 
     pub fn format(path: PathBuf) -> Result<Self> {
@@ -26,6 +43,15 @@ impl Project {
 
     pub fn create(&self, path: PathBuf) -> Result<()> {
         crate::format::create_all(self, path)
+    }
+}
+
+impl From<Manifest> for Project {
+    fn from(value: Manifest) -> Self {
+        Project {
+            manifest: value,
+            mods: vec![],
+        }
     }
 }
 

@@ -44,7 +44,7 @@ impl MainFile {
 
 impl From<Project> for MainFile {
     fn from(value: Project) -> Self {
-        MainFile::new(Modpack::new(value.name, value.version))
+        MainFile::new(Modpack::new(value.manifest.name, value.manifest.version))
     }
 }
 

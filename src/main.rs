@@ -8,7 +8,7 @@ mod project;
 mod source;
 mod subcommand;
 
-pub use project::{Mod, Project};
+pub use project::*;
 pub use source::Source;
 
 use crate::subcommand::Subcommand;

@@ -3,6 +3,7 @@ pub mod modfile;
 
 use crate::format::mainfile::MainFile;
 use crate::format::modfile::ModFile;
+use crate::Manifest;
 use crate::{Mod, Project};
 use eyre::{Result, WrapErr};
 use std::fs;
@@ -107,9 +108,11 @@ pub fn format_all(path: PathBuf) -> Result<Project> {
         )
     }
 
-    Ok(Project {
-        name: formatter.main_file.modpack.name,
-        version: formatter.main_file.modpack.version,
+    Ok(Project::with_mods(
+        Manifest::new(
+            formatter.main_file.modpack.name,
+            formatter.main_file.modpack.version,
+        ),
         mods,
-    })
+    ))
 }
