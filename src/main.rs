@@ -1,9 +1,9 @@
 extern crate core;
 
-mod build;
 mod format;
 mod logger;
 mod modrinth;
+mod ops;
 mod project;
 mod subcommand;
 
