@@ -1,5 +1,6 @@
 use crate::modrinth;
 use crate::modrinth::ModrinthProjectType;
+use crate::toml::JoinToml;
 use crate::Mod;
 use crate::Source;
 use eyre::{ensure, eyre, ContextCompat, WrapErr};
@@ -50,9 +51,8 @@ impl AddArgs {
         crate::toml::write_mod(
             env::current_dir()
                 .unwrap()
-                .join("mods")
-                .join(&mod_data.name)
-                .with_extension("toml"),
+                .join_mods_dir()
+                .join_mod_file(&mod_data.name),
             mod_data.clone(),
         )?;
 

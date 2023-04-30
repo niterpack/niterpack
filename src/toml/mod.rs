@@ -2,12 +2,13 @@ use crate::{Manifest, Mod, Project, Source};
 use eyre::{ContextCompat, Result, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub fn read_project<P: AsRef<Path>>(path: P) -> Result<Project> {
-    let manifest =
-        read_manifest(path.as_ref().join("niter.toml")).wrap_err("failed to read manifest file")?;
-    let mods = read_mods(path.as_ref().join("mods")).wrap_err("failed to read mods directory")?;
+    let manifest = read_manifest(path.as_ref().join_manifest_file())
+        .wrap_err("failed to read manifest file")?;
+    let mods =
+        read_mods(path.as_ref().join_mods_dir()).wrap_err("failed to read mods directory")?;
 
     Ok(Project::with_mods(manifest, mods))
 }
@@ -48,10 +49,10 @@ pub fn read_mod_from_str(name: String, string: &str) -> Result<Mod> {
 }
 
 pub fn write_project<P: AsRef<Path>>(path: P, project: Project) -> Result<()> {
-    write_manifest(path.as_ref().join("niter.toml"), project.manifest)
+    write_manifest(path.as_ref().join_manifest_file(), project.manifest)
         .wrap_err("failed to write manifest file")?;
 
-    let mods_path = path.as_ref().join("mods");
+    let mods_path = path.as_ref().join_mods_dir();
     if !mods_path.exists() {
         fs::create_dir(&mods_path).wrap_err("failed to create mods directory")?;
     }
@@ -68,11 +69,8 @@ pub fn write_manifest<P: AsRef<Path>>(path: P, manifest: Manifest) -> Result<()>
 
 pub fn write_mods<P: AsRef<Path>>(path: P, mods: Vec<Mod>) -> Result<()> {
     for mod_data in mods {
-        write_mod(
-            path.as_ref().join(&mod_data.name).with_extension("toml"),
-            mod_data,
-        )
-        .wrap_err("failed to write mod file")?;
+        write_mod(path.as_ref().join_mod_file(&mod_data.name), mod_data)
+            .wrap_err("failed to write mod file")?;
     }
     Ok(())
 }
@@ -149,5 +147,25 @@ impl From<Mod> for TomlMod {
             file: value.file,
             source: value.source,
         }
+    }
+}
+
+pub trait JoinToml {
+    fn join_manifest_file(&self) -> PathBuf;
+    fn join_mods_dir(&self) -> PathBuf;
+    fn join_mod_file(&self, name: &str) -> PathBuf;
+}
+
+impl JoinToml for Path {
+    fn join_manifest_file(&self) -> PathBuf {
+        self.join("niter").with_extension("toml")
+    }
+
+    fn join_mods_dir(&self) -> PathBuf {
+        self.join("mods")
+    }
+
+    fn join_mod_file(&self, name: &str) -> PathBuf {
+        self.join(name).with_extension("toml")
     }
 }
