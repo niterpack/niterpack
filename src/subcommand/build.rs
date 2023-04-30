@@ -1,4 +1,4 @@
-use crate::ops;
+use crate::operation;
 use crate::Project;
 use log::info;
 use std::env;
@@ -10,7 +10,7 @@ impl BuildArgs {
     pub fn run(&self) -> eyre::Result<()> {
         let current_dir = env::current_dir().unwrap();
 
-        ops::build(
+        operation::build(
             &Project::read(&current_dir)?,
             current_dir.join("build"),
         )?;
