@@ -106,7 +106,7 @@ pub struct TomlManifestMinecraft {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TomlMod {
-    pub name: Option<String>,
+    pub name: String,
     pub file: Option<String>,
     #[serde(flatten)]
     pub source: Source,
@@ -139,16 +139,16 @@ impl From<TomlManifest> for Project {
     }
 }
 
-impl TomlMod {
-    pub fn into_mod(self, name: String) -> Mod {
-        Mod::new(self.name.unwrap_or(name), self.file, self.source)
+impl From<TomlMod> for Mod {
+    fn from(value: TomlMod) -> Self {
+        Mod::new(value.name, value.file, value.source)
     }
 }
 
 impl From<Mod> for TomlMod {
     fn from(value: Mod) -> Self {
         TomlMod {
-            name: Some(value.name),
+            name: value.name,
             file: value.file,
             source: value.source,
         }

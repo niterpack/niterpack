@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `name` property in mod file is now required
 - Add `remove` subcommand to remove mods
 - Add modrinth slug and id checking
 - Remove unused `futures` crate
