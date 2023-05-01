@@ -1,5 +1,5 @@
 use crate::{Manifest, Mod, Project, Source};
-use eyre::{ContextCompat, Result, WrapErr};
+use eyre::{Result, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::ffi::OsStr;
 use std::fs;
@@ -40,18 +40,12 @@ pub fn read_mods<P: AsRef<Path>>(path: P) -> Result<Vec<Mod>> {
 
 pub fn read_mod<P: AsRef<Path>>(path: P) -> Result<Mod> {
     let string = fs::read_to_string(path.as_ref())?;
-    read_mod_from_str(
-        path.as_ref()
-            .file_name()
-            .and_then(|name| name.to_os_string().into_string().ok())
-            .wrap_err("failed to get file name")?,
-        &string,
-    )
+    read_mod_from_str(&string)
 }
 
-pub fn read_mod_from_str(name: String, string: &str) -> Result<Mod> {
+pub fn read_mod_from_str(string: &str) -> Result<Mod> {
     let mod_data = toml::from_str::<TomlMod>(string)?;
-    Ok(mod_data.into_mod(name))
+    Ok(mod_data.into())
 }
 
 pub fn write_project<P: AsRef<Path>>(path: P, project: Project) -> Result<()> {
