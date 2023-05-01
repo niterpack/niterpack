@@ -59,7 +59,7 @@ impl Mod {
                 .wrap_err("failed to fetch modrinth version")?
             {
                 Some(version) => version,
-                None => crate::modrinth::get_versions(&self.name)
+                None => crate::modrinth::get_versions(&self.name, None, None)
                     .wrap_err("failed to fetch modrinth project versions")?
                     .into_iter()
                     .find(|modrinth_version| &modrinth_version.version_number == version)
@@ -86,7 +86,7 @@ impl Mod {
                     .wrap_err("failed to fetch modrinth version")?
                 {
                     Some(version) => version,
-                    None => crate::modrinth::get_versions(&self.name)
+                    None => crate::modrinth::get_versions(&self.name, None, None)
                         .wrap_err("failed to fetch modrinth project versions")?
                         .into_iter()
                         .find(|modrinth_version| &modrinth_version.version_number == version)

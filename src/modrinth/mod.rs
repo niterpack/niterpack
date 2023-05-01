@@ -43,9 +43,12 @@ impl ModrinthVersion {
     }
 }
 
-fn fetch<T: Default + DeserializeOwned>(paths: Vec<&str>) -> Result<T, ModrinthError> {
-    let response =
-        reqwest::blocking::get(format!("https://api.modrinth.com/v2/{}", paths.join("/")))?;
+fn fetch<T: Default + DeserializeOwned>(paths: Vec<&str>, query: Vec<(&str, &str)>) -> Result<T, ModrinthError> {
+    let response = reqwest::blocking::Client::builder()
+        .build()?
+        .get(format!("https://api.modrinth.com/v2/{}", paths.join("/")))
+        .query(&query)
+        .send()?;
     match response.status() {
         StatusCode::NOT_FOUND => Ok(T::default()),
         StatusCode::OK => Ok(serde_json::from_str(response.text()?.as_str())?),
@@ -66,7 +69,7 @@ pub fn get_version(id: &str) -> Result<Option<ModrinthVersion>, ModrinthError> {
         return Ok(None);
     }
 
-    fetch(vec!["version", id])
+    fetch(vec!["version", id], vec![])
 }
 
 pub fn get_project(id: &str) -> Result<Option<ModrinthProject>, ModrinthError> {
@@ -74,13 +77,21 @@ pub fn get_project(id: &str) -> Result<Option<ModrinthProject>, ModrinthError> {
         return Ok(None);
     }
 
-    fetch(vec!["project", id])
+    fetch(vec!["project", id], vec![])
 }
 
-pub fn get_versions(id: &str) -> Result<Vec<ModrinthVersion>, ModrinthError> {
+pub fn get_versions(id: &str, loader: Option<&str>, game_version: Option<&str>) -> Result<Vec<ModrinthVersion>, ModrinthError> {
     if !check_slug(id) {
         return Ok(vec![]);
     }
 
-    fetch(vec!["project", id, "version"])
+    let mut query = Vec::new();
+    if let Some(loader) = loader {
+        query.push(("loader", loader));
+    }
+    if let Some(game_version) = game_version {
+        query.push(("game_version", game_version));
+    }
+
+    fetch(vec!["project", id, "version"], query)
 }
