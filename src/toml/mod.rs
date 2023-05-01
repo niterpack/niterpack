@@ -80,25 +80,25 @@ pub fn write_mod<P: AsRef<Path>>(path: P, mod_data: Mod) -> Result<()> {
     Ok(())
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TomlManifest {
     pub modpack: TomlManifestModpack,
     pub minecraft: Option<TomlManifestMinecraft>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TomlManifestModpack {
     pub name: String,
     pub version: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TomlManifestMinecraft {
     pub loader: Option<String>,
     pub version: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TomlMod {
     pub name: String,
     pub file: Option<String>,
@@ -108,7 +108,15 @@ pub struct TomlMod {
 
 impl From<TomlManifest> for Manifest {
     fn from(value: TomlManifest) -> Self {
-        Manifest::new(value.modpack.name, value.modpack.version)
+        Manifest::new(
+            value.modpack.name,
+            value.modpack.version,
+            value
+                .minecraft
+                .clone()
+                .and_then(|minecraft| minecraft.version),
+            value.minecraft.and_then(|minecraft| minecraft.loader),
+        )
     }
 }
 

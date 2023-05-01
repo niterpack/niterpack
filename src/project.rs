@@ -8,6 +8,8 @@ use url::Url;
 pub struct Manifest {
     pub name: String,
     pub version: String,
+    pub minecraft_version: Option<String>,
+    pub loader: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -24,8 +26,18 @@ pub struct Project {
 }
 
 impl Manifest {
-    pub fn new(name: String, version: String) -> Self {
-        Self { name, version }
+    pub fn new(
+        name: String,
+        version: String,
+        minecraft_version: Option<String>,
+        loader: Option<String>,
+    ) -> Self {
+        Self {
+            name,
+            version,
+            minecraft_version,
+            loader,
+        }
     }
 }
 

@@ -16,6 +16,8 @@ impl InitArgs {
                 .and_then(|name| name.to_os_string().into_string().ok())
                 .wrap_err("failed to get name of the current directory")?,
             String::from("0.1.0"),
+            None,
+            None,
         ));
 
         project.write(current_dir)?;
