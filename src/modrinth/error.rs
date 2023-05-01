@@ -32,7 +32,7 @@ impl<T> NotFound<T> for Result<T, ModrinthError> {
                     }
                 }
                 Err(err)
-            },
+            }
         }
     }
 }
