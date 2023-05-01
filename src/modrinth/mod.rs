@@ -1,8 +1,6 @@
 mod error;
 
 use crate::modrinth::error::ModrinthError;
-use reqwest::StatusCode;
-use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,74 +41,86 @@ impl ModrinthVersion {
     }
 }
 
-fn fetch<T: Default + DeserializeOwned>(paths: Vec<&str>) -> Result<T, ModrinthError> {
-    let response = reqwest::blocking::Client::builder()
-        .build()?
-        .get(format!("https://api.modrinth.com/v2/{}", paths.join("/")))
-        .send()?;
-    match response.status() {
-        StatusCode::NOT_FOUND => Ok(T::default()),
-        StatusCode::OK => Ok(serde_json::from_str(response.text()?.as_str())?),
-        status => Err(ModrinthError::UnexpectedStatusCode(status)),
-    }
-}
+macro_rules! get {
+    (
+        path: [$( $path:expr ),+],
+        $(query: { $($query:tt)* },)?
+    ) => {
+        let request = reqwest::blocking::Client::builder()
+            .build()?
+            .get(format!("https://api.modrinth.com/v2/{}", vec![$($path),*].join("/")));
 
-fn fetch_with_query<T: Default + DeserializeOwned, Q: AsRef<str> + Serialize>(
-    paths: Vec<&str>,
-    query: Vec<(&str, Q)>,
-) -> Result<T, ModrinthError> {
-    let response = reqwest::blocking::Client::builder()
-        .build()?
-        .get(format!("https://api.modrinth.com/v2/{}", paths.join("/")))
-        .query(&query)
-        .send()?;
-    match response.status() {
-        StatusCode::NOT_FOUND => Ok(T::default()),
-        StatusCode::OK => Ok(serde_json::from_str(response.text()?.as_str())?),
-        status => Err(ModrinthError::UnexpectedStatusCode(status)),
-    }
+        $(
+        let mut query = Vec::new();
+        for (key, value) in serde_json::json!({$($query)*}).as_object().unwrap() {
+            if value == &serde_json::Value::Null {
+                continue;
+            } else if let serde_json::Value::String(value) = value {
+                query.push((key.to_string(), value.to_string()))
+            } else {
+                query.push((key.to_string(), serde_json::to_string(&value)?))
+            }
+        }
+        let request = request.query(&query);
+        )?
+
+        let response = request.send()?;
+
+        Ok(serde_json::from_str(response.error_for_status()?
+            .text()?
+            .as_str())?)
+    };
 }
 
 pub fn check_slug(slug: &str) -> bool {
     lazy_regex::regex_is_match!(r#"^[\w!@$()`.+,"\-']{3,64}$"#, slug)
 }
 
+fn check_slug_err(slug: &str) -> Result<(), ModrinthError> {
+    if check_slug(slug) {
+        Ok(())
+    } else {
+        Err(ModrinthError::InvalidSlugOrId(slug.to_string()))
+    }
+}
+
 pub fn check_id(id: &str) -> bool {
     lazy_regex::regex_is_match!(r#"^[a-zA-Z0-9]{8}$"#, id)
 }
 
-pub fn get_version(id: &str) -> Result<Option<ModrinthVersion>, ModrinthError> {
-    if !check_id(id) {
-        return Ok(None);
+fn check_id_err(id: &str) -> Result<(), ModrinthError> {
+    if check_id(id) {
+        Ok(())
+    } else {
+        Err(ModrinthError::InvalidSlugOrId(id.to_string()))
     }
-
-    fetch(vec!["version", id])
 }
 
-pub fn get_project(id: &str) -> Result<Option<ModrinthProject>, ModrinthError> {
-    if !check_slug(id) {
-        return Ok(None);
+pub fn version(id: &str) -> Result<ModrinthVersion, ModrinthError> {
+    check_id_err(id)?;
+    get! {
+        path: ["version", id],
     }
-
-    fetch(vec!["project", id])
 }
 
-pub fn get_versions(
+pub fn project(id: &str) -> Result<ModrinthProject, ModrinthError> {
+    check_slug_err(id)?;
+    get! {
+        path: ["project", id],
+    }
+}
+
+pub fn project_versions(
     id: &str,
     loader: Option<&str>,
     game_version: Option<&str>,
 ) -> Result<Vec<ModrinthVersion>, ModrinthError> {
-    if !check_slug(id) {
-        return Ok(vec![]);
+    check_slug_err(id)?;
+    get! {
+        path: ["project", id, "version"],
+        query: {
+            "loaders": loader.map(|loader| vec![loader]),
+            "game_versions": game_version.map(|game_version| vec![game_version]),
+        },
     }
-
-    let mut query = Vec::new();
-    if let Some(loader) = loader {
-        query.push(("loaders", serde_json::to_string(&vec![loader])?));
-    }
-    if let Some(game_version) = game_version {
-        query.push(("game_versions", serde_json::to_string(&vec![game_version])?));
-    }
-
-    fetch_with_query(vec!["project", id, "version"], query)
 }

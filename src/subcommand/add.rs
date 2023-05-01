@@ -3,7 +3,7 @@ use crate::modrinth::ModrinthProjectType;
 use crate::toml::JoinToml;
 use crate::Mod;
 use crate::Source;
-use eyre::{ensure, eyre, ContextCompat, WrapErr};
+use eyre::{ensure, ContextCompat, WrapErr};
 use log::info;
 use std::env;
 
@@ -29,9 +29,8 @@ impl AddArgs {
         let manifest = crate::toml::read_manifest(path.join_manifest_file())
             .wrap_err("failed to read manifest file")?;
 
-        let project = modrinth::get_project(&self.mod_name)
-            .wrap_err("failed to fetch modrinth project")?
-            .ok_or_else(|| eyre!("project `{}` not found", &self.mod_name))?;
+        let project =
+            modrinth::project(&self.mod_name).wrap_err("failed to fetch modrinth project")?;
 
         ensure!(
             project.project_type == ModrinthProjectType::Mod,
@@ -41,7 +40,7 @@ impl AddArgs {
         let version = match &self.version_name {
             Some(version_name) => version_name.into(),
             None => {
-                modrinth::get_versions(
+                modrinth::project_versions(
                     &project.id,
                     manifest.loader.as_deref(),
                     manifest.minecraft_version.as_deref(),

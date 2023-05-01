@@ -55,11 +55,9 @@ impl Mod {
     pub fn download_url(&self) -> Result<String> {
         match &self.source {
             Download { url } => Ok(url.clone()),
-            Modrinth { version } => Ok(match crate::modrinth::get_version(version)
-                .wrap_err("failed to fetch modrinth version")?
-            {
-                Some(version) => version,
-                None => crate::modrinth::get_versions(&self.name, None, None)
+            Modrinth { version } => Ok(match crate::modrinth::version(version) {
+                Ok(version) => version,
+                Err(_) => crate::modrinth::project_versions(&self.name, None, None)
                     .wrap_err("failed to fetch modrinth project versions")?
                     .into_iter()
                     .find(|modrinth_version| &modrinth_version.version_number == version)
@@ -82,11 +80,9 @@ impl Mod {
                     .and_then(|name| if name.is_empty() { None } else { Some(name) })
                     .map(|s| s.into())
                     .ok_or_else(|| eyre!("invalid url")),
-                Modrinth { version } => Ok(match crate::modrinth::get_version(version)
-                    .wrap_err("failed to fetch modrinth version")?
-                {
-                    Some(version) => version,
-                    None => crate::modrinth::get_versions(&self.name, None, None)
+                Modrinth { version } => Ok(match crate::modrinth::version(version) {
+                    Ok(version) => version,
+                    Err(_) => crate::modrinth::project_versions(&self.name, None, None)
                         .wrap_err("failed to fetch modrinth project versions")?
                         .into_iter()
                         .find(|modrinth_version| &modrinth_version.version_number == version)
