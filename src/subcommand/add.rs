@@ -24,6 +24,11 @@ pub struct AddArgs {
 
 impl AddArgs {
     pub fn mod_data(&self) -> eyre::Result<Mod> {
+        let path = env::current_dir().unwrap();
+
+        let manifest = crate::toml::read_manifest(path.join_manifest_file())
+            .wrap_err("failed to read manifest file")?;
+
         let project = modrinth::get_project(&self.mod_name)
             .wrap_err("failed to fetch modrinth project")?
             .ok_or_else(|| eyre!("project `{}` not found", &self.mod_name))?;
@@ -35,11 +40,18 @@ impl AddArgs {
 
         let version = match &self.version_name {
             Some(version_name) => version_name.into(),
-            None => project
-                .versions
-                .last()
-                .wrap_err("project doesn't have any versions")?
-                .clone(),
+            None => {
+                modrinth::get_versions(
+                    &project.id,
+                    manifest.loader.as_deref(),
+                    manifest.minecraft_version.as_deref(),
+                )
+                .wrap_err("failed to fetch project versions")?
+                .first()
+                .wrap_err("project doesn't have a valid version for this modpack")?
+                .clone()
+                .id
+            }
         };
 
         Ok(Mod::new(project.slug, None, Source::Modrinth { version }))
