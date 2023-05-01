@@ -1,4 +1,5 @@
 use crate::modrinth;
+use crate::modrinth::error::NotFound;
 use crate::modrinth::ModrinthProjectType;
 use crate::toml::JoinToml;
 use crate::Mod;
@@ -29,8 +30,10 @@ impl AddArgs {
         let manifest = crate::toml::read_manifest(path.join_manifest_file())
             .wrap_err("failed to read manifest file")?;
 
-        let project =
-            modrinth::project(&self.mod_name).wrap_err("failed to fetch modrinth project")?;
+        let project = modrinth::project(&self.mod_name)
+            .not_found()
+            .wrap_err("failed to fetch modrinth project")?
+            .wrap_err(format!("project `{}` not found", &self.mod_name))?;
 
         ensure!(
             project.project_type == ModrinthProjectType::Mod,

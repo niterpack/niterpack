@@ -1,4 +1,4 @@
-mod error;
+pub mod error;
 
 use crate::modrinth::error::ModrinthError;
 use serde::{Deserialize, Serialize};
