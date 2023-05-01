@@ -15,7 +15,7 @@ impl RemoveArgs {
         let path = env::current_dir()
             .unwrap()
             .join_mods_dir()
-            .join(&self.mod_name);
+            .join_mod_file(&self.mod_name);
 
         ensure!(
             path.exists(),
