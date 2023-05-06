@@ -17,7 +17,7 @@ Its interface is easy to use and is inspired by Rust's package manager [Cargo](h
 
 - Easy to use command-line interface
 - TOML format, which can be version-controlled
-- Adding mods from [Modrinth](https://modrinth.com/)
+- Creating modpacks with mods from [Modrinth](https://modrinth.com/)
 - Building modpacks into a usable installation
 
 More features are yet to be added, and you can request more using [the issue tracker](https://github.com/panda885/niter/issues).
