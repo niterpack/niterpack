@@ -12,18 +12,22 @@ pub struct RemoveArgs {
 
 impl RemoveArgs {
     pub fn run(&self) -> eyre::Result<()> {
-        let path = env::current_dir()
-            .unwrap()
-            .join_mods_dir()
-            .join_mod_file(&self.mod_name);
+        let current_dir = env::current_dir().unwrap();
 
         ensure!(
-            path.exists(),
+            current_dir.join_manifest_file().exists(),
+            "could not find `niter.toml` in the current directory"
+        );
+
+        let mod_path = current_dir.join_mods_dir().join_mod_file(&self.mod_name);
+
+        ensure!(
+            mod_path.exists(),
             "mod `{}` doesn't exist in this modpack",
             &self.mod_name
         );
 
-        fs::remove_file(path)?;
+        fs::remove_file(mod_path)?;
 
         info!("Removed mod `{}` from modpack", &self.mod_name);
         Ok(())
