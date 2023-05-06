@@ -1,16 +1,8 @@
-use crate::Source;
 use crate::Source::{Download, Modrinth};
+use crate::{Manifest, Source};
 use eyre::{eyre, Result, WrapErr};
 use std::path::Path;
 use url::Url;
-
-#[derive(Debug, Clone)]
-pub struct Manifest {
-    pub name: String,
-    pub version: String,
-    pub minecraft_version: Option<String>,
-    pub loader: Option<String>,
-}
 
 #[derive(Debug, Clone)]
 pub struct Mod {
@@ -23,28 +15,6 @@ pub struct Mod {
 pub struct Project {
     pub manifest: Manifest,
     pub mods: Vec<Mod>,
-}
-
-impl Manifest {
-    pub fn new(
-        name: String,
-        version: String,
-        minecraft_version: Option<String>,
-        loader: Option<String>,
-    ) -> Self {
-        Self {
-            name,
-            version,
-            minecraft_version,
-            loader,
-        }
-    }
-}
-
-impl From<Project> for Manifest {
-    fn from(value: Project) -> Self {
-        value.manifest
-    }
 }
 
 impl Mod {

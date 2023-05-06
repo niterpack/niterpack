@@ -2,12 +2,14 @@ extern crate core;
 
 mod commands;
 mod logger;
+mod manifest;
 mod modrinth;
 mod ops;
 mod project;
 mod source;
 mod toml;
 
+pub use manifest::*;
 pub use project::*;
 pub use source::Source;
 
