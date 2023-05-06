@@ -52,7 +52,7 @@ impl AddArgs {
                 .first()
                 .wrap_err("project doesn't have a valid version for this modpack")?
                 .clone()
-                .id
+                .version_number
             }
         };
 

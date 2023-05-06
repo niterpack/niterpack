@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- `add` command now uses version number instead of id
 - Lots of code refactoring
 - New `[minecraft]` optional section with `version` and `loader` properties in manifest file
 
