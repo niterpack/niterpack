@@ -3,7 +3,7 @@ extern crate core;
 mod commands;
 mod logger;
 mod modrinth;
-mod operation;
+mod ops;
 mod project;
 mod source;
 mod toml;

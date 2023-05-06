@@ -1,4 +1,4 @@
-use crate::operation;
+use crate::ops;
 use crate::Project;
 use log::info;
 use std::env;
@@ -10,7 +10,7 @@ impl BuildArgs {
     pub fn run(&self) -> eyre::Result<()> {
         let current_dir = env::current_dir().unwrap();
 
-        operation::build(&Project::read(&current_dir)?, current_dir.join("build"))?;
+        ops::build(&Project::read(&current_dir)?, current_dir.join("build"))?;
 
         info!("Finished building modpack");
         Ok(())
