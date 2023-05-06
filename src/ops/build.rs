@@ -50,12 +50,8 @@ pub fn build_installation(project: &Project, path: PathBuf) -> Result<()> {
 fn download(client: &reqwest::blocking::Client, path: &Path, url: &str) -> Result<()> {
     let response = client.get(url).send().wrap_err("failed to send request")?;
 
-    let body = response.text()?;
-
-    let mut file =
-        fs::File::create(path).wrap_err(format!("failed to create file `{:?}`", path))?;
-
-    std::io::copy(&mut body.as_bytes(), &mut file).wrap_err("failed to copy response to file")?;
+    let body = response.bytes()?;
+    fs::write(path, &body).wrap_err(format!("failed to write to file `{:?}`", path))?;
 
     Ok(())
 }
