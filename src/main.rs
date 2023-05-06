@@ -1,24 +1,24 @@
 extern crate core;
 
+mod commands;
 mod logger;
 mod modrinth;
 mod operation;
 mod project;
 mod source;
-mod subcommand;
 mod toml;
 
 pub use project::*;
 pub use source::Source;
 
-use crate::subcommand::Subcommand;
+use crate::commands::Commands;
 use clap::{command, Parser};
 
 #[derive(clap::Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
     #[command(subcommand)]
-    command: Subcommand,
+    command: Commands,
 }
 
 fn main() -> eyre::Result<()> {

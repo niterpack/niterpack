@@ -4,7 +4,7 @@ mod init;
 mod remove;
 
 #[derive(clap::Subcommand)]
-pub enum Subcommand {
+pub enum Commands {
     /// Create a new modpack in the current directory
     Init(init::InitArgs),
 
@@ -18,13 +18,13 @@ pub enum Subcommand {
     Build(build::BuildArgs),
 }
 
-impl Subcommand {
+impl Commands {
     pub fn run(&self) -> eyre::Result<()> {
         match &self {
-            Subcommand::Init(args) => args.run(),
-            Subcommand::Add(args) => args.run(),
-            Subcommand::Remove(args) => args.run(),
-            Subcommand::Build(args) => args.run(),
+            Commands::Init(args) => args.run(),
+            Commands::Add(args) => args.run(),
+            Commands::Remove(args) => args.run(),
+            Commands::Build(args) => args.run(),
         }
     }
 }
