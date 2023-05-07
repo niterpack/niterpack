@@ -1,8 +1,7 @@
-use crate::Source::{Download, Modrinth};
+use crate::source::BuildSource;
 use crate::{Manifest, Source};
-use eyre::{eyre, Result, WrapErr};
+use eyre::Result;
 use std::path::Path;
-use url::Url;
 
 #[derive(Debug, Clone)]
 pub struct Mod {
@@ -22,48 +21,8 @@ impl Mod {
         Mod { name, file, source }
     }
 
-    pub fn download_url(&self) -> Result<String> {
-        match &self.source {
-            Download { url } => Ok(url.clone()),
-            Modrinth { version } => Ok(match crate::modrinth::version(version) {
-                Ok(version) => version,
-                Err(_) => crate::modrinth::project_versions(&self.name, None, None)
-                    .wrap_err("failed to fetch modrinth project versions")?
-                    .into_iter()
-                    .find(|modrinth_version| &modrinth_version.version_number == version)
-                    .ok_or_else(|| eyre!("could not find version `{}`", version))?,
-            }
-            .primary_file()
-            .ok_or_else(|| eyre!("primary file not found"))?
-            .url
-            .clone()),
-        }
-    }
-
-    pub fn file_name(&self) -> Result<String> {
-        match self.file.clone() {
-            Some(file) => Ok(file),
-            None => match &self.source {
-                Download { url } => Url::parse(url)?
-                    .path_segments()
-                    .and_then(|segments| segments.last())
-                    .and_then(|name| if name.is_empty() { None } else { Some(name) })
-                    .map(|s| s.into())
-                    .ok_or_else(|| eyre!("invalid url")),
-                Modrinth { version } => Ok(match crate::modrinth::version(version) {
-                    Ok(version) => version,
-                    Err(_) => crate::modrinth::project_versions(&self.name, None, None)
-                        .wrap_err("failed to fetch modrinth project versions")?
-                        .into_iter()
-                        .find(|modrinth_version| &modrinth_version.version_number == version)
-                        .ok_or_else(|| eyre!("could not find version `{}`", version))?,
-                }
-                .primary_file()
-                .ok_or_else(|| eyre!("primary file not found"))?
-                .filename
-                .clone()),
-            },
-        }
+    pub fn build_source(&self) -> Result<BuildSource> {
+        BuildSource::from_mod(self)
     }
 }
 
@@ -82,6 +41,14 @@ impl Project {
 
     pub fn write<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         crate::toml::write_project(path, self.clone())
+    }
+
+    pub fn build_sources(&self) -> Result<Vec<BuildSource>> {
+        let mut result = Vec::new();
+        for mod_data in &self.mods {
+            result.push(mod_data.build_source()?);
+        }
+        Ok(result)
     }
 }
 

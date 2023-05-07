@@ -1,3 +1,4 @@
+use crate::source::BuildSource;
 use crate::Project;
 use eyre::{Result, WrapErr};
 use log::info;
@@ -5,10 +6,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 pub fn build(project: &Project, path: PathBuf) -> Result<()> {
-    build_installation(project, path.join("installation"))
+    let sources = project.build_sources()?;
+    build_installation(sources, path.join("installation"))
 }
 
-pub fn build_installation(project: &Project, path: PathBuf) -> Result<()> {
+pub fn build_installation(sources: Vec<BuildSource>, path: PathBuf) -> Result<()> {
     if path.exists() {
         if path.is_file() {
             fs::remove_file(&path).wrap_err("failed to remove installation file")?;
@@ -27,21 +29,11 @@ pub fn build_installation(project: &Project, path: PathBuf) -> Result<()> {
         .build()
         .wrap_err("failed to create a reqwest client")?;
 
-    for mod_data in &project.mods {
-        let file_name = mod_data.file_name().wrap_err(format!(
-            "failed to get file name of mod `{}`",
-            mod_data.name
-        ))?;
+    for source in sources {
+        info!("Downloading {}", &source.file);
 
-        let url = mod_data.download_url().wrap_err(format!(
-            "failed to get download url of mod `{}`",
-            mod_data.name
-        ))?;
-
-        info!("Downloading {}", file_name);
-
-        download(&client, &mods_dir.join(&file_name), &url)
-            .wrap_err(format!("failed to download mod `{}`", mod_data.name))?;
+        download(&client, &mods_dir.join(&source.file), &source.url)
+            .wrap_err(format!("failed to download mod `{}`", &source.name))?;
     }
 
     Ok(())
