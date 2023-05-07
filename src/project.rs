@@ -21,8 +21,8 @@ impl Mod {
         Mod { name, file, source }
     }
 
-    pub fn build_source(&self) -> Result<BuildSource> {
-        BuildSource::from_mod(self)
+    pub fn build_source(&self, manifest: &Manifest) -> Result<BuildSource> {
+        BuildSource::generate(manifest, self)
     }
 }
 
@@ -46,7 +46,7 @@ impl Project {
     pub fn build_sources(&self) -> Result<Vec<BuildSource>> {
         let mut result = Vec::new();
         for mod_data in &self.mods {
-            result.push(mod_data.build_source()?);
+            result.push(mod_data.build_source(&self.manifest)?);
         }
         Ok(result)
     }

@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lots of code refactoring
 - New `[minecraft]` optional section with `version` and `loader` properties in manifest file
 
-  - `add` command now filters versions based on these properties
+  - `add` and `build` command now filters versions based on these properties
 
 - `name` property in mod file is now required
 - Add `remove` subcommand to remove mods

@@ -1,4 +1,4 @@
-use crate::Mod;
+use crate::{Manifest, Mod};
 use eyre::{ContextCompat, Result, WrapErr};
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -19,7 +19,7 @@ pub struct BuildSource {
 }
 
 impl BuildSource {
-    pub fn from_mod(mod_data: &Mod) -> Result<BuildSource> {
+    pub fn generate(manifest: &Manifest, mod_data: &Mod) -> Result<BuildSource> {
         Ok(match &mod_data.source {
             Source::Download { url } => BuildSource {
                 name: mod_data.name.to_string(),
@@ -34,11 +34,15 @@ impl BuildSource {
             Source::Modrinth { version } => {
                 let version = match crate::modrinth::version(version) {
                     Ok(version) => version,
-                    Err(_) => crate::modrinth::project_versions(&mod_data.name, None, None)
-                        .wrap_err("failed to fetch modrinth project versions")?
-                        .into_iter()
-                        .find(|modrinth_version| &modrinth_version.version_number == version)
-                        .wrap_err(format!("could not find version `{}`", version))?,
+                    Err(_) => crate::modrinth::project_versions(
+                        &mod_data.name,
+                        manifest.loader.as_deref(),
+                        manifest.minecraft_version.as_deref(),
+                    )
+                    .wrap_err("failed to fetch modrinth project versions")?
+                    .into_iter()
+                    .find(|modrinth_version| &modrinth_version.version_number == version)
+                    .wrap_err(format!("could not find version `{}`", version))?,
                 };
                 let file = version.primary_file().wrap_err("primary file not found")?;
                 BuildSource {
