@@ -37,7 +37,10 @@ pub struct ModrinthVersionFile {
 
 impl ModrinthVersion {
     pub fn primary_file(&self) -> Option<&ModrinthVersionFile> {
-        self.files.iter().find(|file| file.primary)
+        self.files
+            .iter()
+            .find(|file| file.primary)
+            .or_else(|| self.files.first())
     }
 }
 
