@@ -1,4 +1,4 @@
-# niter
+# niterpack
 
 > **A modern command-line tool for creating Minecraft modpacks**
 
@@ -8,7 +8,7 @@
 
 **🛠️ Heavily under development - release candidate versions only**
 
-Niter is a modern command-line tool for creating Minecraft modpacks.
+Niterpack is a modern command-line tool for creating Minecraft modpacks.
 It uses TOML format, which allows the modpack to be easily version-controlled using [git](https://git-scm.com/) or other tools.
 Because of the command-line nature, it can also be implemented with continuous integration.
 Its interface is easy to use and is inspired by Rust's package manager [Cargo](https://github.com/rust-lang/cargo).
