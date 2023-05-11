@@ -162,7 +162,7 @@ pub trait JoinToml {
 
 impl JoinToml for Path {
     fn join_manifest_file(&self) -> PathBuf {
-        self.join("niter").with_extension("toml")
+        self.join("niterpack").with_extension("toml")
     }
 
     fn join_mods_dir(&self) -> PathBuf {

@@ -16,7 +16,7 @@ impl RemoveArgs {
 
         ensure!(
             current_dir.join_manifest_file().exists(),
-            "could not find `niter.toml` in the current directory"
+            "could not find `niterpack.toml` in the current directory"
         );
 
         let mod_path = current_dir.join_mods_dir().join_mod_file(&self.mod_name);

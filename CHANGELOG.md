@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Manifest file renamed to `niterpack.toml`
 - `build` command now uses first file if primary file is not defined
 - Fixed `build` requesting version multiple times
 - `add` command now uses version number instead of id
