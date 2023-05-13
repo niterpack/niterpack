@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-rc.1] - 2023-05-13
+
 - Manifest file renamed to `niterpack.toml`
 - `build` command now uses first file if primary file is not defined
 - Fixed `build` requesting version multiple times
@@ -25,5 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release
 
-[Unreleased]: https://github.com/panda885/niter/compare/v0.1.0-rc.0...HEAD
+[Unreleased]: https://github.com/panda885/niter/compare/v0.1.0-rc.1...HEAD
+[0.1.0-rc.1]: https://github.com/panda885/niter/compare/v0.1.0-rc.0...v0.1.0-rc.1
 [0.1.0-rc.0]: https://github.com/panda885/niter/releases/tag/v0.1.0-rc.0
