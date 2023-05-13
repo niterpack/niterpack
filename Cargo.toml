@@ -2,7 +2,7 @@
 name = "niterpack"
 version = "0.1.0-rc.1"
 description = "A modern command-line tool for creating Minecraft modpacks"
-repository = "https://github.com/panda885/niter"
+repository = "https://github.com/niterpack/niterpack"
 license = "MIT OR Apache-2.0"
 authors = ["Panda885"]
 categories = ["command-line-utilities"]
