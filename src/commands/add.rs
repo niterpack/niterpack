@@ -1,7 +1,5 @@
-use crate::modrinth;
-use crate::modrinth::error::NotFound;
-use crate::modrinth::ModrinthProjectType;
 use crate::toml::JoinToml;
+use crate::util::modrinth::{self, error::NotFound, ModrinthProjectType};
 use crate::Mod;
 use crate::Source;
 use eyre::{ensure, ContextCompat, WrapErr};

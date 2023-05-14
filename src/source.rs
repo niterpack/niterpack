@@ -1,3 +1,4 @@
+use crate::util::modrinth;
 use crate::{Manifest, Mod};
 use eyre::{ContextCompat, Result, WrapErr};
 use serde::{Deserialize, Serialize};
@@ -32,9 +33,9 @@ impl BuildSource {
                 url: url.to_string(),
             },
             Source::Modrinth { version } => {
-                let version = match crate::modrinth::version(version) {
+                let version = match modrinth::version(version) {
                     Ok(version) => version,
-                    Err(_) => crate::modrinth::project_versions(
+                    Err(_) => modrinth::project_versions(
                         &mod_data.name,
                         manifest.loader.as_deref(),
                         manifest.minecraft_version.as_deref(),

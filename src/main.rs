@@ -3,11 +3,11 @@ extern crate core;
 mod commands;
 mod logger;
 mod manifest;
-mod modrinth;
 mod ops;
 mod project;
 mod source;
 mod toml;
+mod util;
 
 pub use manifest::*;
 pub use project::*;

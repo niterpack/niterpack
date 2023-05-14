@@ -1,6 +1,6 @@
 pub mod error;
 
-use crate::modrinth::error::ModrinthError;
+use error::ModrinthError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
