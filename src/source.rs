@@ -13,10 +13,13 @@ pub enum Source {
     Modrinth { version: String },
 }
 
+#[derive(Debug, Clone)]
 pub struct BuildSource {
     pub name: String,
     pub url: String,
     pub file: String,
+    pub sha1: String,
+    pub sha512: String,
 }
 
 impl BuildSource {
@@ -31,6 +34,8 @@ impl BuildSource {
                     .map(|s| s.into())
                     .wrap_err("invalid url")?,
                 url: url.to_string(),
+                sha1: todo!(),
+                sha512: todo!(),
             },
             Source::Modrinth { version } => {
                 let version = match modrinth::version(version) {
@@ -50,6 +55,8 @@ impl BuildSource {
                     name: mod_data.name.to_string(),
                     url: file.url.to_string(),
                     file: file.filename.to_string(),
+                    sha1: file.hashes.sha1.to_string(),
+                    sha512: file.hashes.sha512.to_string(),
                 }
             }
         })
