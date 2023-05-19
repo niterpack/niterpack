@@ -18,7 +18,7 @@ Its interface is easy to use and is inspired by Rust's package manager [Cargo](h
 - Easy to use command-line interface
 - TOML format, which can be version-controlled
 - Creating modpacks with mods from [Modrinth](https://modrinth.com/)
-- Building modpacks into a usable installation
+- Building modpacks into a usable Minecraft instance
 
 More features are yet to be added, and you can request more using [the issue tracker](https://github.com/panda885/niter/issues).
 
@@ -50,7 +50,7 @@ Build the project:
 niter build # Builds the current project
 ```
 
-Your modpack is now available under `build/installation`.
+Your modpack is now available under `build/instance`.
 
 ## License
 

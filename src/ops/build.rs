@@ -7,23 +7,23 @@ use std::path::{Path, PathBuf};
 
 pub fn build(project: &Project, path: PathBuf) -> Result<()> {
     let sources = project.build_sources()?;
-    build_installation(sources, path.join("installation"))
+    build_instance(sources, path.join("instance"))
 }
 
-pub fn build_installation(sources: Vec<BuildSource>, path: PathBuf) -> Result<()> {
+pub fn build_instance(sources: Vec<BuildSource>, path: PathBuf) -> Result<()> {
     if path.exists() {
         if path.is_file() {
-            fs::remove_file(&path).wrap_err("failed to remove installation file")?;
+            fs::remove_file(&path).wrap_err("failed to remove instance file")?;
         } else {
-            fs::remove_dir_all(&path).wrap_err("failed to remove installation directory")?;
+            fs::remove_dir_all(&path).wrap_err("failed to remove instance directory")?;
         }
     }
 
-    fs::create_dir_all(&path).wrap_err("failed to create installation directory")?;
+    fs::create_dir_all(&path).wrap_err("failed to create instance directory")?;
 
     let mods_dir = path.join("mods");
 
-    fs::create_dir(&mods_dir).wrap_err("failed to create mods directory inside installation")?;
+    fs::create_dir(&mods_dir).wrap_err("failed to create mods directory inside instance")?;
 
     let client = reqwest::blocking::Client::builder()
         .build()
