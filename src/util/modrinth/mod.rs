@@ -33,11 +33,11 @@ pub struct VersionFile {
     pub url: String,
     pub filename: String,
     pub primary: bool,
-    pub hashes: ModrinthVersionFileHashes,
+    pub hashes: Hashes,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModrinthVersionFileHashes {
+pub struct Hashes {
     pub sha512: String,
     pub sha1: String,
 }
