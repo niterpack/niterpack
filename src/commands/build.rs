@@ -33,9 +33,7 @@ impl Output {
         let sources = project.build_sources()?;
 
         match self {
-            Output::Instance => {
-                ops::build_instance(sources, path.as_ref().join("instance"))
-            }
+            Output::Instance => ops::build_instance(sources, path.as_ref().join("instance")),
             Output::Modrinth => {
                 ops::build_modrinth(&project.manifest, sources, path.as_ref().join("modrinth"))
             }
