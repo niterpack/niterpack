@@ -1,5 +1,6 @@
 use crate::source::BuildSource;
-use crate::Project;
+use crate::util::mrpack;
+use crate::{Manifest, Project};
 use eyre::{Result, WrapErr};
 use log::info;
 use std::fs;
@@ -37,6 +38,12 @@ pub fn build_instance(sources: Vec<BuildSource>, path: PathBuf) -> Result<()> {
     }
 
     Ok(())
+}
+
+pub fn build_modrinth(manifest: &Manifest, sources: Vec<BuildSource>, path: PathBuf) -> Result<()> {
+    fs::create_dir_all(&path).wrap_err("failed to create modrinth directory")?;
+
+    mrpack::write_index(path.join("modrinth.index.json"), manifest, sources)
 }
 
 fn download(client: &reqwest::blocking::Client, path: &Path, url: &str) -> Result<()> {
