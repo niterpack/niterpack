@@ -4,16 +4,16 @@ use error::ModrinthError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModrinthProject {
+pub struct Project {
     pub slug: String,
     pub id: String,
-    pub project_type: ModrinthProjectType,
+    pub project_type: ProjectType,
     pub versions: Vec<String>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum ModrinthProjectType {
+pub enum ProjectType {
     Mod,
     Modpack,
     ResourcePack,
@@ -21,15 +21,15 @@ pub enum ModrinthProjectType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModrinthVersion {
+pub struct Version {
     pub id: String,
     pub name: String,
     pub version_number: String,
-    pub files: Vec<ModrinthVersionFile>,
+    pub files: Vec<VersionFile>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModrinthVersionFile {
+pub struct VersionFile {
     pub url: String,
     pub filename: String,
     pub primary: bool,
@@ -42,8 +42,8 @@ pub struct ModrinthVersionFileHashes {
     pub sha1: String,
 }
 
-impl ModrinthVersion {
-    pub fn primary_file(&self) -> Option<&ModrinthVersionFile> {
+impl Version {
+    pub fn primary_file(&self) -> Option<&VersionFile> {
         self.files
             .iter()
             .find(|file| file.primary)
@@ -106,14 +106,14 @@ fn check_id_err(id: &str) -> Result<(), ModrinthError> {
     }
 }
 
-pub fn version(id: &str) -> Result<ModrinthVersion, ModrinthError> {
+pub fn version(id: &str) -> Result<Version, ModrinthError> {
     check_id_err(id)?;
     get! {
         path: ["version", id],
     }
 }
 
-pub fn project(id: &str) -> Result<ModrinthProject, ModrinthError> {
+pub fn project(id: &str) -> Result<Project, ModrinthError> {
     check_slug_err(id)?;
     get! {
         path: ["project", id],
@@ -124,7 +124,7 @@ pub fn project_versions(
     id: &str,
     loader: Option<&str>,
     game_version: Option<&str>,
-) -> Result<Vec<ModrinthVersion>, ModrinthError> {
+) -> Result<Vec<Version>, ModrinthError> {
     check_slug_err(id)?;
     get! {
         path: ["project", id, "version"],

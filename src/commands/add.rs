@@ -1,5 +1,5 @@
 use crate::toml::JoinToml;
-use crate::util::modrinth::{self, error::NotFound, ModrinthProjectType};
+use crate::util::modrinth::{self, error::NotFound};
 use crate::Mod;
 use crate::Source;
 use eyre::{ensure, ContextCompat, WrapErr};
@@ -34,7 +34,7 @@ impl AddArgs {
             .wrap_err(format!("project `{}` not found", &self.mod_name))?;
 
         ensure!(
-            project.project_type == ModrinthProjectType::Mod,
+            project.project_type == modrinth::ProjectType::Mod,
             "only `mod` project types are allowed"
         );
 
