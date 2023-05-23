@@ -47,7 +47,7 @@ niter add <MOD> # Adds a new mod to the current project
 Build the project:
 
 ```sh
-niter build # Builds the current project
+niter build instance # Builds the current project into a usable instance
 ```
 
 Your modpack is now available under `build/instance`.
