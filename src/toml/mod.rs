@@ -11,7 +11,7 @@ pub fn read_project<P: AsRef<Path>>(path: P) -> Result<Project> {
     let mods =
         read_mods(path.as_ref().join_mods_dir()).wrap_err("failed to read mods directory")?;
 
-    Ok(Project::with_mods(manifest, mods))
+    Ok(Project::new(manifest, mods, None))
 }
 
 pub fn read_manifest<P: AsRef<Path>>(path: P) -> Result<Manifest> {
@@ -134,7 +134,7 @@ impl From<Manifest> for TomlManifest {
 
 impl From<TomlManifest> for Project {
     fn from(value: TomlManifest) -> Self {
-        Project::new(value.into())
+        Project::from(Manifest::from(value))
     }
 }
 

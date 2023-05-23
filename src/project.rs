@@ -1,7 +1,7 @@
 use crate::source::BuildSource;
 use crate::{Manifest, Source};
 use eyre::Result;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct Mod {
@@ -14,6 +14,7 @@ pub struct Mod {
 pub struct Project {
     pub manifest: Manifest,
     pub mods: Vec<Mod>,
+    pub config_dir: Option<PathBuf>,
 }
 
 impl Mod {
@@ -27,12 +28,12 @@ impl Mod {
 }
 
 impl Project {
-    pub fn new(manifest: Manifest) -> Self {
-        Self::with_mods(manifest, vec![])
-    }
-
-    pub fn with_mods(manifest: Manifest, mods: Vec<Mod>) -> Self {
-        Project { manifest, mods }
+    pub fn new(manifest: Manifest, mods: Vec<Mod>, config_dir: Option<PathBuf>) -> Self {
+        Self {
+            manifest,
+            mods,
+            config_dir,
+        }
     }
 
     pub fn read<P: AsRef<Path>>(path: P) -> Result<Self> {
@@ -57,6 +58,7 @@ impl From<Manifest> for Project {
         Project {
             manifest: value,
             mods: vec![],
+            config_dir: None,
         }
     }
 }
