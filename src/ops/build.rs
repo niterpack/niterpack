@@ -25,9 +25,6 @@ pub fn build_instance(project: &Project, sources: Vec<BuildSource>, path: PathBu
     if let Some(project_config) = &project.config_dir {
         let config_dir = path.join("config");
 
-        fs::create_dir(&config_dir)
-            .wrap_err("failed to create config directory inside instance")?;
-
         copy_recursive(project_config, config_dir).wrap_err("failed to copy config files")?;
     }
 
@@ -60,6 +57,8 @@ fn download(client: &reqwest::blocking::Client, path: &Path, url: &str) -> Resul
 }
 
 fn copy_recursive<U: AsRef<Path>, V: AsRef<Path>>(from: U, to: V) -> Result<()> {
+    fs::create_dir(&to)?;
+
     for entry in fs::read_dir(from)? {
         let entry = entry?;
         let path = entry.path();
@@ -69,5 +68,6 @@ fn copy_recursive<U: AsRef<Path>, V: AsRef<Path>>(from: U, to: V) -> Result<()> 
             fs::copy(path, to.as_ref().join(entry.file_name()))?;
         }
     }
+
     Ok(())
 }
