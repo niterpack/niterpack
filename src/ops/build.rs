@@ -7,10 +7,10 @@ use std::path::{Path, PathBuf};
 
 pub fn build(project: &Project, path: PathBuf) -> Result<()> {
     let sources = project.build_sources()?;
-    build_instance(sources, path.join("instance"))
+    build_instance(project, sources, path.join("instance"))
 }
 
-pub fn build_instance(sources: Vec<BuildSource>, path: PathBuf) -> Result<()> {
+pub fn build_instance(project: &Project, sources: Vec<BuildSource>, path: PathBuf) -> Result<()> {
     if path.exists() {
         if path.is_file() {
             fs::remove_file(&path).wrap_err("failed to remove instance file")?;
@@ -21,6 +21,17 @@ pub fn build_instance(sources: Vec<BuildSource>, path: PathBuf) -> Result<()> {
 
     fs::create_dir_all(&path).wrap_err("failed to create instance directory")?;
 
+    // Copy the configuration files
+    if let Some(project_config) = &project.config_dir {
+        let config_dir = path.join("config");
+
+        fs::create_dir(&config_dir)
+            .wrap_err("failed to create config directory inside instance")?;
+
+        copy_recursive(project_config, config_dir).wrap_err("failed to copy config files")?;
+    }
+
+    // Download all the mods
     let mods_dir = path.join("mods");
 
     fs::create_dir(&mods_dir).wrap_err("failed to create mods directory inside instance")?;
@@ -45,5 +56,18 @@ fn download(client: &reqwest::blocking::Client, path: &Path, url: &str) -> Resul
     let body = response.bytes()?;
     fs::write(path, &body).wrap_err(format!("failed to write to file `{:?}`", path))?;
 
+    Ok(())
+}
+
+fn copy_recursive<U: AsRef<Path>, V: AsRef<Path>>(from: U, to: V) -> Result<()> {
+    for entry in fs::read_dir(from)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_dir() {
+            copy_recursive(path, to.as_ref().join(entry.file_name()))?;
+        } else {
+            fs::copy(path, to.as_ref().join(entry.file_name()))?;
+        }
+    }
     Ok(())
 }
