@@ -79,7 +79,7 @@ pub fn build_instance(project: &Project, sources: Vec<BuildSource>, path: PathBu
 }
 
 fn sha512(path: &Path) -> Result<String> {
-    let mut file = File::open(&path)?;
+    let mut file = File::open(path)?;
     let mut sha512 = Sha512::new();
 
     io::copy(&mut file, &mut sha512)?;
