@@ -2,7 +2,10 @@ use crate::source::BuildSource;
 use crate::Project;
 use eyre::{Result, WrapErr};
 use log::info;
-use std::fs;
+use sha2::{Digest, Sha512};
+use std::ffi::OsString;
+use std::fs::{self, File};
+use std::io;
 use std::path::{Path, PathBuf};
 
 pub fn build(project: &Project, path: PathBuf) -> Result<()> {
@@ -11,19 +14,17 @@ pub fn build(project: &Project, path: PathBuf) -> Result<()> {
 }
 
 pub fn build_instance(project: &Project, sources: Vec<BuildSource>, path: PathBuf) -> Result<()> {
-    if path.exists() {
-        if path.is_file() {
-            fs::remove_file(&path).wrap_err("failed to remove instance file")?;
-        } else {
-            fs::remove_dir_all(&path).wrap_err("failed to remove instance directory")?;
-        }
+    if !path.exists() {
+        fs::create_dir_all(&path).wrap_err("failed to create instance directory")?;
     }
-
-    fs::create_dir_all(&path).wrap_err("failed to create instance directory")?;
 
     // Copy the configuration files
     if let Some(project_config) = &project.config_dir {
         let config_dir = path.join("config");
+
+        if config_dir.exists() {
+            fs::remove_dir_all(&config_dir).wrap_err("failed to remove config directory")?;
+        }
 
         copy_recursive(project_config, config_dir).wrap_err("failed to copy config files")?;
     }
@@ -31,20 +32,59 @@ pub fn build_instance(project: &Project, sources: Vec<BuildSource>, path: PathBu
     // Download all the mods
     let mods_dir = path.join("mods");
 
-    fs::create_dir(&mods_dir).wrap_err("failed to create mods directory inside instance")?;
+    if !mods_dir.exists() {
+        fs::create_dir(&mods_dir).wrap_err("failed to create mods directory inside instance")?;
+    }
 
     let client = reqwest::blocking::Client::builder()
         .build()
         .wrap_err("failed to create a reqwest client")?;
 
-    for source in sources {
-        info!("Downloading {}", &source.file);
+    for mod_entry in fs::read_dir(&mods_dir)? {
+        let mod_entry = mod_entry?;
 
-        download(&client, &mods_dir.join(&source.file), &source.url)
-            .wrap_err(format!("failed to download mod `{}`", &source.name))?;
+        if let Some(source) = sources
+            .iter()
+            .find(|source| mod_entry.file_name() == OsString::from(&source.file))
+        {
+            if let Some(source_hash) = &source.sha512 {
+                let hash = sha512(&mod_entry.path()).wrap_err(format!(
+                    "failed to generate sha512 for mod `{}`",
+                    source.file
+                ))?;
+
+                if source_hash == &hash {
+                    continue;
+                }
+            }
+
+            info!("Downloading {}", &source.file);
+
+            fs::remove_file(mod_entry.path())
+                .wrap_err(format!("failed to remove mod `{}`", &source.file))?;
+
+            download(&client, &mod_entry.path(), &source.url)
+                .wrap_err(format!("failed to download mod `{}`", &source.file))?;
+
+            continue;
+        }
+
+        fs::remove_file(mod_entry.path()).wrap_err(format!(
+            "failed to remove mod `{}`",
+            mod_entry.file_name().to_string_lossy()
+        ))?;
     }
 
     Ok(())
+}
+
+fn sha512(path: &Path) -> Result<String> {
+    let mut file = File::open(&path)?;
+    let mut sha512 = Sha512::new();
+
+    io::copy(&mut file, &mut sha512)?;
+
+    Ok(hex::encode(sha512.finalize()))
 }
 
 fn download(client: &reqwest::blocking::Client, path: &Path, url: &str) -> Result<()> {
