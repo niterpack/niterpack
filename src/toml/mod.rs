@@ -10,8 +10,15 @@ pub fn read_project<P: AsRef<Path>>(path: P) -> Result<Project> {
         .wrap_err("failed to read manifest file")?;
     let mods =
         read_mods(path.as_ref().join_mods_dir()).wrap_err("failed to read mods directory")?;
+    let config_dir = Some(path.as_ref().join_config_dir()).and_then(|path| {
+        if path.exists() && path.is_dir() {
+            Some(path)
+        } else {
+            None
+        }
+    });
 
-    Ok(Project::with_mods(manifest, mods))
+    Ok(Project::new(manifest, mods, config_dir))
 }
 
 pub fn read_manifest<P: AsRef<Path>>(path: P) -> Result<Manifest> {
@@ -134,7 +141,7 @@ impl From<Manifest> for TomlManifest {
 
 impl From<TomlManifest> for Project {
     fn from(value: TomlManifest) -> Self {
-        Project::new(value.into())
+        Project::from(Manifest::from(value))
     }
 }
 
@@ -158,6 +165,7 @@ pub trait JoinToml {
     fn join_manifest_file(&self) -> PathBuf;
     fn join_mods_dir(&self) -> PathBuf;
     fn join_mod_file(&self, name: &str) -> PathBuf;
+    fn join_config_dir(&self) -> PathBuf;
 }
 
 impl JoinToml for Path {
@@ -171,5 +179,9 @@ impl JoinToml for Path {
 
     fn join_mod_file(&self, name: &str) -> PathBuf {
         self.join(name).with_extension("toml")
+    }
+
+    fn join_config_dir(&self) -> PathBuf {
+        self.join("config")
     }
 }

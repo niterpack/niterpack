@@ -10,7 +10,7 @@ impl InitArgs {
     pub fn run(&self) -> eyre::Result<()> {
         let current_dir = env::current_dir().unwrap();
 
-        let project = Project::new(Manifest::new(
+        let project = Project::from(Manifest::new(
             current_dir
                 .file_name()
                 .and_then(|name| name.to_os_string().into_string().ok())
