@@ -1,5 +1,5 @@
 use log::{Level, LevelFilter, Metadata, Record};
-use termcolor::{BufferWriter, Color, ColorChoice, ColorSpec, WriteColor};
+use owo_colors::{OwoColorize, Stream, Style};
 
 pub fn init() {
     log::set_boxed_logger(Box::new(NiterLogger::new()))
@@ -7,17 +7,11 @@ pub fn init() {
         .expect("could not set logger")
 }
 
-pub struct NiterLogger {
-    writer: BufferWriter,
-    err_writer: BufferWriter,
-}
+pub struct NiterLogger;
 
 impl NiterLogger {
-    pub fn new() -> NiterLogger {
-        NiterLogger {
-            writer: BufferWriter::stdout(ColorChoice::Auto),
-            err_writer: BufferWriter::stderr(ColorChoice::Auto),
-        }
+    pub fn new() -> Self {
+        NiterLogger
     }
 }
 
@@ -28,36 +22,21 @@ impl log::Log for NiterLogger {
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
-            use std::io::Write;
-
             match record.level() {
-                Level::Error => {
-                    let mut buffer = self.err_writer.buffer();
-                    buffer
-                        .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
-                        .and_then(|_| write!(buffer, "error:"))
-                        .and_then(|_| buffer.reset())
-                        .and_then(|_| writeln!(buffer, " {}", record.args()))
-                        .and_then(|_| self.err_writer.print(&buffer))
-                }
-                Level::Warn => {
-                    let mut buffer = self.err_writer.buffer();
-                    buffer
-                        .set_color(ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true))
-                        .and_then(|_| write!(buffer, "warning:"))
-                        .and_then(|_| buffer.reset())
-                        .and_then(|_| writeln!(buffer, " {}", record.args()))
-                        .and_then(|_| self.err_writer.print(&buffer))
-                }
-                _ => {
-                    let mut buffer = self.writer.buffer();
-                    buffer
-                        .reset()
-                        .and_then(|_| writeln!(buffer, "{}", record.args()))
-                        .and_then(|_| self.writer.print(&buffer))
-                }
+                Level::Error => eprintln!(
+                    "{} {}",
+                    "error:".if_supports_color(Stream::Stderr, |text| text
+                        .style(Style::new().red().bold())),
+                    record.args(),
+                ),
+                Level::Warn => eprintln!(
+                    "{} {}",
+                    "warn:".if_supports_color(Stream::Stderr, |text| text
+                        .style(Style::new().yellow().bold())),
+                    record.args(),
+                ),
+                _ => println!("{}", record.args(),),
             }
-            .expect("could not write to logger buffer");
         }
     }
 
