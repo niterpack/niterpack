@@ -1,6 +1,7 @@
 use crate::toml::JoinToml;
 use eyre::ensure;
 use log::info;
+use owo_colors::{OwoColorize, Stream, Style};
 use std::{env, fs};
 
 #[derive(clap::Args)]
@@ -29,7 +30,12 @@ impl RemoveArgs {
 
         fs::remove_file(mod_path)?;
 
-        info!("Removed mod `{}` from modpack", &self.mod_name);
+        info!(
+            "{} {} from modpack",
+            "Removed".if_supports_color(Stream::Stdout, |text| text
+                .style(Style::new().green().bold())),
+            &self.mod_name
+        );
         Ok(())
     }
 }

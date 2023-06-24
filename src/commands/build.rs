@@ -1,6 +1,9 @@
 use crate::ops;
 use crate::Project;
 use log::info;
+use owo_colors::OwoColorize;
+use owo_colors::Stream;
+use owo_colors::Style;
 use std::env;
 
 #[derive(clap::Args)]
@@ -12,7 +15,11 @@ impl BuildArgs {
 
         ops::build(&Project::read(&current_dir)?, current_dir.join("build"))?;
 
-        info!("Finished building modpack");
+        info!(
+            "{} modpack",
+            "Built".if_supports_color(Stream::Stdout, |text| text
+                .style(Style::new().green().bold()))
+        );
         Ok(())
     }
 }

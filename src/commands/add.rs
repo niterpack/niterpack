@@ -4,6 +4,7 @@ use crate::Mod;
 use crate::Source;
 use eyre::{ensure, ContextCompat, WrapErr};
 use log::info;
+use owo_colors::{OwoColorize, Stream, Style};
 use std::env;
 
 #[derive(clap::Args)]
@@ -68,7 +69,18 @@ impl AddArgs {
             mod_data.clone(),
         )?;
 
-        info!("Added mod `{}` to modpack", mod_data.name);
+        let mod_name = if let Source::Modrinth { version } = mod_data.source {
+            format!("{} ({})", mod_data.name, version)
+        } else {
+            mod_data.name
+        };
+
+        info!(
+            "{} {} to modpack",
+            "Added".if_supports_color(Stream::Stdout, |text| text
+                .style(Style::new().green().bold())),
+            mod_name
+        );
         Ok(())
     }
 }

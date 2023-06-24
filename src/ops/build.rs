@@ -2,6 +2,7 @@ use crate::source::BuildSource;
 use crate::Project;
 use eyre::{Result, WrapErr};
 use log::info;
+use owo_colors::{OwoColorize, Stream, Style};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -38,7 +39,12 @@ pub fn build_instance(project: &Project, sources: Vec<BuildSource>, path: PathBu
         .wrap_err("failed to create a reqwest client")?;
 
     for source in sources {
-        info!("Downloading {}", &source.file);
+        info!(
+            "{} {}",
+            "Downloading".if_supports_color(Stream::Stdout, |text| text
+                .style(Style::new().green().bold())),
+            &source.file
+        );
 
         download(&client, &mods_dir.join(&source.file), &source.url)
             .wrap_err(format!("failed to download mod `{}`", &source.name))?;

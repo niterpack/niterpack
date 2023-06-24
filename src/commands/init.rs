@@ -1,6 +1,7 @@
 use crate::{Manifest, Project};
 use eyre::ContextCompat;
 use log::info;
+use owo_colors::{OwoColorize, Stream, Style};
 use std::env;
 
 #[derive(clap::Args)]
@@ -22,7 +23,12 @@ impl InitArgs {
 
         project.write(current_dir)?;
 
-        info!("Created a new modpack `{}`", &project.manifest.name);
+        info!(
+            "{} new modpack `{}`",
+            "Created".if_supports_color(Stream::Stdout, |text| text
+                .style(Style::new().green().bold())),
+            &project.manifest.name
+        );
         Ok(())
     }
 }
