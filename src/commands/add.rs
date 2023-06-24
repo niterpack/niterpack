@@ -2,9 +2,9 @@ use crate::toml::JoinToml;
 use crate::util::modrinth::{self, error::NotFound};
 use crate::Mod;
 use crate::Source;
+use console::style;
 use eyre::{ensure, ContextCompat, WrapErr};
 use log::info;
-use owo_colors::{OwoColorize, Stream, Style};
 use std::env;
 
 #[derive(clap::Args)]
@@ -75,12 +75,7 @@ impl AddArgs {
             mod_data.name
         };
 
-        info!(
-            "{} {} to modpack",
-            "Added".if_supports_color(Stream::Stdout, |text| text
-                .style(Style::new().green().bold())),
-            mod_name
-        );
+        info!("{} {} to modpack", style("Added").green().bold(), mod_name);
         Ok(())
     }
 }

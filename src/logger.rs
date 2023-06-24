@@ -1,5 +1,5 @@
+use console::style;
 use log::{Level, LevelFilter, Metadata, Record};
-use owo_colors::{OwoColorize, Stream, Style};
 
 pub static LOGGER: NiterLogger = NiterLogger;
 
@@ -21,14 +21,12 @@ impl log::Log for NiterLogger {
             match record.level() {
                 Level::Error => eprintln!(
                     "{} {}",
-                    "error:".if_supports_color(Stream::Stderr, |text| text
-                        .style(Style::new().red().bold())),
+                    style("error:").for_stderr().red().bold(),
                     record.args(),
                 ),
                 Level::Warn => eprintln!(
                     "{} {}",
-                    "warn:".if_supports_color(Stream::Stderr, |text| text
-                        .style(Style::new().yellow().bold())),
+                    style("warn:").for_stderr().yellow().bold(),
                     record.args(),
                 ),
                 _ => println!("{}", record.args(),),
