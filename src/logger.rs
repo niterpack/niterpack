@@ -1,19 +1,15 @@
 use log::{Level, LevelFilter, Metadata, Record};
 use owo_colors::{OwoColorize, Stream, Style};
 
+pub static LOGGER: NiterLogger = NiterLogger;
+
 pub fn init() {
-    log::set_boxed_logger(Box::new(NiterLogger::new()))
+    log::set_logger(&LOGGER)
         .map(|()| log::set_max_level(LevelFilter::Info))
         .expect("could not set logger")
 }
 
 pub struct NiterLogger;
-
-impl NiterLogger {
-    pub fn new() -> Self {
-        NiterLogger
-    }
-}
 
 impl log::Log for NiterLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
