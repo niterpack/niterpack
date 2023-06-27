@@ -2,7 +2,7 @@ use crate::source::BuildSource;
 use crate::Project;
 use console::style;
 use eyre::{Result, WrapErr};
-use log::info;
+use indicatif::{ProgressBar, ProgressStyle};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -38,11 +38,25 @@ pub fn build_instance(project: &Project, sources: Vec<BuildSource>, path: PathBu
         .build()
         .wrap_err("failed to create a reqwest client")?;
 
+    let progress = ProgressBar::new(sources.len() as u64);
+    progress.set_style(
+        ProgressStyle::with_template("  {prefix:.cyan.bold} mods [{bar:25}] {pos}/{len}")
+            .unwrap()
+            .progress_chars("= "),
+    );
+    progress.set_prefix("Downloading");
+
     for source in sources {
-        info!("{} {}", style("Downloading").green().bold(), &source.file);
+        progress.println(format!(
+            "{} {}",
+            style("Downloading").green().bold(),
+            &source.file
+        ));
 
         download(&client, &mods_dir.join(&source.file), &source.url)
             .wrap_err(format!("failed to download mod `{}`", &source.name))?;
+
+        progress.inc(1)
     }
 
     Ok(())
