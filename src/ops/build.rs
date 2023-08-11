@@ -5,9 +5,12 @@ use eyre::{Result, WrapErr};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::fs;
 use std::path::{Path, PathBuf};
+use log::info;
 
 pub fn build(project: &Project, path: PathBuf) -> Result<()> {
+    info!("{} mods...", style("Fetching").cyan().bold());
     let sources = project.build_sources()?;
+
     build_instance(project, sources, path.join("instance"))
 }
 
