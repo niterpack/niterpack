@@ -1,5 +1,6 @@
 use crate::ops;
 use crate::Project;
+use console::style;
 use log::info;
 use std::env;
 
@@ -12,7 +13,7 @@ impl BuildArgs {
 
         ops::build(&Project::read(&current_dir)?, current_dir.join("build"))?;
 
-        info!("Finished building modpack");
+        info!("{} modpack", style("Built").green().bold());
         Ok(())
     }
 }

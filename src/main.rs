@@ -15,6 +15,7 @@ pub use source::Source;
 
 use crate::commands::Commands;
 use clap::{command, Parser};
+use log::error;
 
 #[derive(clap::Parser)]
 #[command(author, version, about, long_about = None)]
@@ -23,11 +24,14 @@ struct Cli {
     command: Commands,
 }
 
-fn main() -> eyre::Result<()> {
-    logger::init();
+fn main() {
+    logger::install();
 
     let cli = Cli::parse();
-    cli.command.run()?;
+    let result = cli.command.run();
 
-    Ok(())
+    if let Err(err) = result {
+        error!("{}", err);
+        std::process::exit(1);
+    }
 }

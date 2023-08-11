@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Improved logging
+
+  - Add coloring to success messages
+
 - Add a `config` directory that contains mod configurations
 
   - This directory is included in builds

@@ -1,4 +1,5 @@
 use crate::{Manifest, Project};
+use console::style;
 use eyre::ContextCompat;
 use log::info;
 use std::env;
@@ -22,7 +23,11 @@ impl InitArgs {
 
         project.write(current_dir)?;
 
-        info!("Created a new modpack `{}`", &project.manifest.name);
+        info!(
+            "{} new modpack `{}`",
+            style("Created").green().bold(),
+            &project.manifest.name
+        );
         Ok(())
     }
 }

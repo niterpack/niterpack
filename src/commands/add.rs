@@ -2,6 +2,7 @@ use crate::toml::JoinToml;
 use crate::util::modrinth::{self, error::NotFound};
 use crate::Mod;
 use crate::Source;
+use console::style;
 use eyre::{ensure, ContextCompat, WrapErr};
 use log::info;
 use std::env;
@@ -68,7 +69,13 @@ impl AddArgs {
             mod_data.clone(),
         )?;
 
-        info!("Added mod `{}` to modpack", mod_data.name);
+        let mod_name = if let Source::Modrinth { version } = mod_data.source {
+            format!("{} ({})", mod_data.name, version)
+        } else {
+            mod_data.name
+        };
+
+        info!("{} {} to modpack", style("Added").green().bold(), mod_name);
         Ok(())
     }
 }

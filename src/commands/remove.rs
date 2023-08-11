@@ -1,4 +1,5 @@
 use crate::toml::JoinToml;
+use console::style;
 use eyre::ensure;
 use log::info;
 use std::{env, fs};
@@ -29,7 +30,11 @@ impl RemoveArgs {
 
         fs::remove_file(mod_path)?;
 
-        info!("Removed mod `{}` from modpack", &self.mod_name);
+        info!(
+            "{} {} from modpack",
+            style("Removed").green().bold(),
+            &self.mod_name
+        );
         Ok(())
     }
 }

@@ -1,25 +1,18 @@
+use console::style;
+use eyre::Chain;
 use log::{Level, LevelFilter, Metadata, Record};
-use termcolor::{BufferWriter, Color, ColorChoice, ColorSpec, WriteColor};
 
-pub fn init() {
-    log::set_boxed_logger(Box::new(NiterLogger::new()))
+pub static LOGGER: NiterLogger = NiterLogger;
+
+pub fn install() {
+    log::set_logger(&LOGGER)
         .map(|()| log::set_max_level(LevelFilter::Info))
-        .expect("could not set logger")
+        .expect("failed to set set logger");
+
+    eyre::set_hook(Box::new(move |_| Box::new(NiterLogger))).expect("failed to set eyre hook");
 }
 
-pub struct NiterLogger {
-    writer: BufferWriter,
-    err_writer: BufferWriter,
-}
-
-impl NiterLogger {
-    pub fn new() -> NiterLogger {
-        NiterLogger {
-            writer: BufferWriter::stdout(ColorChoice::Auto),
-            err_writer: BufferWriter::stderr(ColorChoice::Auto),
-        }
-    }
-}
+pub struct NiterLogger;
 
 impl log::Log for NiterLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
@@ -28,38 +21,55 @@ impl log::Log for NiterLogger {
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
-            use std::io::Write;
-
             match record.level() {
-                Level::Error => {
-                    let mut buffer = self.err_writer.buffer();
-                    buffer
-                        .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
-                        .and_then(|_| write!(buffer, "error:"))
-                        .and_then(|_| buffer.reset())
-                        .and_then(|_| writeln!(buffer, " {}", record.args()))
-                        .and_then(|_| self.err_writer.print(&buffer))
-                }
-                Level::Warn => {
-                    let mut buffer = self.err_writer.buffer();
-                    buffer
-                        .set_color(ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true))
-                        .and_then(|_| write!(buffer, "warning:"))
-                        .and_then(|_| buffer.reset())
-                        .and_then(|_| writeln!(buffer, " {}", record.args()))
-                        .and_then(|_| self.err_writer.print(&buffer))
-                }
-                _ => {
-                    let mut buffer = self.writer.buffer();
-                    buffer
-                        .reset()
-                        .and_then(|_| writeln!(buffer, "{}", record.args()))
-                        .and_then(|_| self.writer.print(&buffer))
-                }
+                Level::Error => eprintln!(
+                    "{} {}",
+                    style("error:").for_stderr().red().bold(),
+                    record.args(),
+                ),
+                Level::Warn => eprintln!(
+                    "{} {}",
+                    style("warn:").for_stderr().yellow().bold(),
+                    record.args(),
+                ),
+                _ => println!("{}", record.args(),),
             }
-            .expect("could not write to logger buffer");
         }
     }
 
     fn flush(&self) {}
+}
+
+impl eyre::EyreHandler for NiterLogger {
+    fn debug(
+        &self,
+        error: &(dyn std::error::Error + 'static),
+        f: &mut core::fmt::Formatter<'_>,
+    ) -> core::fmt::Result {
+        write!(f, "{}", error)?;
+
+        if let Some(source) = error.source() {
+            write!(f, "\n\n{}", style("caused by:").bold())?;
+
+            let chain = Chain::new(source);
+
+            if chain.len() == 1 {
+                write!(f, "\n  {}", source)?;
+            } else {
+                for (i, error) in Chain::new(source).enumerate() {
+                    write!(f, "\n  {}: {}", i, error)?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn display(
+        &self,
+        error: &(dyn std::error::Error + 'static),
+        f: &mut core::fmt::Formatter<'_>,
+    ) -> core::fmt::Result {
+        self.debug(error, f)
+    }
 }

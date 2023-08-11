@@ -24,7 +24,8 @@ lazy-regex = "2.5"
 reqwest = { version = "0.11", features = ["blocking"] }
 url = "2.3"
 
-termcolor = "1.2"
 thiserror = "1.0"
-log = { version = "0.4", features = ["std"] }
+log = "0.4"
 eyre = "0.6"
+console = "0.15"
+indicatif = "0.17"
