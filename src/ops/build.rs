@@ -13,7 +13,11 @@ pub fn build(project: &Project, path: PathBuf) -> Result<()> {
     build_instance(project, sources, path.join("instance"))
 }
 
-pub fn build_instance(project: &Project, mut sources: Vec<BuildSource>, path: PathBuf) -> Result<()> {
+pub fn build_instance(
+    project: &Project,
+    mut sources: Vec<BuildSource>,
+    path: PathBuf,
+) -> Result<()> {
     if !path.exists() {
         fs::create_dir_all(&path).wrap_err("failed to create instance directory")?;
     }
@@ -94,7 +98,11 @@ fn sha512(path: &Path) -> Result<String> {
     Ok(hex::encode(sha512.finalize()))
 }
 
-fn download_source(client: &reqwest::blocking::Client, source: &BuildSource, path: &Path) -> Result<()> {
+fn download_source(
+    client: &reqwest::blocking::Client,
+    source: &BuildSource,
+    path: &Path,
+) -> Result<()> {
     info!("Downloading {}", &source.file);
 
     download(&client, path, &source.url)?;
