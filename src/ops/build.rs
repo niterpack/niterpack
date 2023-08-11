@@ -105,7 +105,7 @@ fn download_source(
 ) -> Result<()> {
     info!("Downloading {}", &source.file);
 
-    download(&client, path, &source.url)?;
+    download(client, path, &source.url)?;
 
     Ok(())
 }
