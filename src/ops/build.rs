@@ -13,7 +13,7 @@ pub fn build(project: &Project, path: PathBuf) -> Result<()> {
     build_instance(project, sources, path.join("instance"))
 }
 
-pub fn build_instance(project: &Project, sources: Vec<BuildSource>, path: PathBuf) -> Result<()> {
+pub fn build_instance(project: &Project, mut sources: Vec<BuildSource>, path: PathBuf) -> Result<()> {
     if !path.exists() {
         fs::create_dir_all(&path).wrap_err("failed to create instance directory")?;
     }
@@ -43,10 +43,12 @@ pub fn build_instance(project: &Project, sources: Vec<BuildSource>, path: PathBu
     for mod_entry in fs::read_dir(&mods_dir)? {
         let mod_entry = mod_entry?;
 
-        if let Some(source) = sources
+        if let Some(index) = sources
             .iter()
-            .find(|source| mod_entry.file_name() == OsString::from(&source.file))
+            .position(|source| mod_entry.file_name() == OsString::from(&source.file))
         {
+            let source = &sources[index];
+
             if let Some(source_hash) = &source.sha512 {
                 let hash = sha512(&mod_entry.path()).wrap_err(format!(
                     "failed to generate sha512 for mod `{}`",
@@ -54,18 +56,18 @@ pub fn build_instance(project: &Project, sources: Vec<BuildSource>, path: PathBu
                 ))?;
 
                 if source_hash == &hash {
+                    sources.remove(index);
                     continue;
                 }
             }
 
-            info!("Downloading {}", &source.file);
-
             fs::remove_file(mod_entry.path())
                 .wrap_err(format!("failed to remove mod `{}`", &source.file))?;
 
-            download(&client, &mod_entry.path(), &source.url)
+            download_source(&client, source, &mod_entry.path())
                 .wrap_err(format!("failed to download mod `{}`", &source.file))?;
 
+            sources.remove(index);
             continue;
         }
 
@@ -73,6 +75,11 @@ pub fn build_instance(project: &Project, sources: Vec<BuildSource>, path: PathBu
             "failed to remove mod `{}`",
             mod_entry.file_name().to_string_lossy()
         ))?;
+    }
+
+    for source in sources {
+        download_source(&client, &source, &mods_dir.join(&source.file))
+            .wrap_err(format!("failed to download mod `{}`", &source.file))?;
     }
 
     Ok(())
@@ -85,6 +92,14 @@ fn sha512(path: &Path) -> Result<String> {
     io::copy(&mut file, &mut sha512)?;
 
     Ok(hex::encode(sha512.finalize()))
+}
+
+fn download_source(client: &reqwest::blocking::Client, source: &BuildSource, path: &Path) -> Result<()> {
+    info!("Downloading {}", &source.file);
+
+    download(&client, path, &source.url)?;
+
+    Ok(())
 }
 
 fn download(client: &reqwest::blocking::Client, path: &Path, url: &str) -> Result<()> {
