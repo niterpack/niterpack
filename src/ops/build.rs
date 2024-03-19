@@ -26,10 +26,6 @@ pub fn build_instance(
     if let Some(project_config) = &project.config_dir {
         let config_dir = path.join("config");
 
-        if config_dir.exists() {
-            fs::remove_dir_all(&config_dir).wrap_err("failed to remove config directory")?;
-        }
-
         copy_recursive(project_config, config_dir).wrap_err("failed to copy config files")?;
     }
 
@@ -120,7 +116,9 @@ fn download(client: &reqwest::blocking::Client, path: &Path, url: &str) -> Resul
 }
 
 fn copy_recursive<U: AsRef<Path>, V: AsRef<Path>>(from: U, to: V) -> Result<()> {
-    fs::create_dir(&to)?;
+    if !to.as_ref().exists() {
+        fs::create_dir(&to)?;
+    }
 
     for entry in fs::read_dir(from)? {
         let entry = entry?;
