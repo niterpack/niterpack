@@ -17,6 +17,7 @@ pub struct BuildSource {
     pub name: String,
     pub url: String,
     pub file: String,
+    pub sha512: Option<String>,
 }
 
 impl BuildSource {
@@ -31,6 +32,7 @@ impl BuildSource {
                     .map(|s| s.into())
                     .wrap_err("invalid url")?,
                 url: url.to_string(),
+                sha512: None,
             },
             Source::Modrinth { version } => {
                 let version = match modrinth::version(version) {
@@ -50,6 +52,7 @@ impl BuildSource {
                     name: mod_data.name.to_string(),
                     url: file.url.to_string(),
                     file: file.filename.to_string(),
+                    sha512: Some(file.hashes.sha512.to_string()),
                 }
             }
         })
